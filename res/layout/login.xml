@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+        >
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/app_name"
+            android:id="@+id/textView" android:autoText="false" android:layout_gravity="center_horizontal"/>
+    <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageView" android:layout_gravity="center_horizontal"
+            android:contentDescription="Race-Gofer Logo" android:src="@drawable/logo_half"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Login"
+            android:id="@+id/textView2" android:layout_gravity="center_horizontal"/>
+    <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_gravity="center_horizontal">
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="User Name:"
+                android:id="@+id/textView3" android:layout_marginLeft="15dp"/>
+        <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:ems="10"
+                android:id="@+id/editText" android:layout_weight="1" android:layout_marginRight="15dp"/>
+    </LinearLayout>
+    <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_gravity="center_horizontal">
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Password:"
+                android:id="@+id/textView4" android:layout_weight="0.20" android:layout_marginLeft="15dp"/>
+        <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:ems="10"
+                android:id="@+id/editText2" android:layout_weight="1" android:layout_marginRight="15dp"/>
+    </LinearLayout>
+    <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Remember Me"
+            android:id="@+id/checkBox" android:checked="false" android:layout_marginLeft="15dp"/>
+    <Button
+            android:layout_width="125dp"
+            android:layout_height="wrap_content"
+            android:text="Login"
+            android:id="@+id/loginButton" android:layout_gravity="center_horizontal"
+            android:onClick="loginButtonClick"/>
+    <Button
+            android:layout_width="125dp"
+            android:layout_height="wrap_content"
+            android:text="Sign-Up"
+            android:id="@+id/signupButton" android:layout_gravity="center_horizontal" android:layout_marginTop="20dp"/>
+</LinearLayout>
+
