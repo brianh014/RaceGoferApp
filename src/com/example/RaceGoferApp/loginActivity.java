@@ -5,7 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-public class loginActivity extends Activity {
+public class LoginActivity extends Activity {
     /**
      * Called when the activity is first created.
      */
@@ -16,8 +16,8 @@ public class loginActivity extends Activity {
     }
 
     public void loginButtonClick(View view) {
-        //Temporarily goes to racer view
-        Intent intent = new Intent(this, racerViewActivity.class);
+        //Temporarily goes to race lists
+        Intent intent = new Intent(this, RaceListsActivity.class);
         startActivity(intent);
     }
 }
