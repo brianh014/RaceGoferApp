@@ -7,8 +7,7 @@ import android.os.Bundle;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.*;
 
 /**
  * Created by Brian on 10/30/2014.
@@ -46,6 +45,26 @@ public class RacerViewActivity extends Activity{
         else {
             gps.showSettingsAlert();
         }
+
+        drawRacers();
+    }
+
+    private void drawRacers() {
+        //Draw dummy racers
+        map.addMarker(new MarkerOptions().position(new LatLng(30.6,-96.3)).title("Racer's Name").icon(BitmapDescriptorFactory.fromResource(R.drawable.race_marker_green)));
+        map.addMarker(new MarkerOptions().position(new LatLng(30.62,-96.31)).title("Racer's Name").icon(BitmapDescriptorFactory.fromResource(R.drawable.race_marker_green)));
+
+        //Draw dummy checkpoints
+        map.addMarker(new MarkerOptions().position(new LatLng(30.6,-96.4)).icon(BitmapDescriptorFactory.fromResource(R.drawable.checkpoint)));
+        map.addMarker(new MarkerOptions().position(new LatLng(30.7,-96.5)).icon(BitmapDescriptorFactory.fromResource(R.drawable.checkpoint)));
+        map.addMarker(new MarkerOptions().position(new LatLng(30.8,-96.4)).icon(BitmapDescriptorFactory.fromResource(R.drawable.checkpoint)));
+        map.addMarker(new MarkerOptions().position(new LatLng(30.3,-96.2)).icon(BitmapDescriptorFactory.fromResource(R.drawable.checkpoint)));
+        PolylineOptions checkpointline = new PolylineOptions()
+                .add(new LatLng(30.6,-96.4))
+                .add(new LatLng(30.7,-96.5))
+                .add(new LatLng(30.8,-96.4))
+                .add(new LatLng(30.3,-96.2));
+        Polyline polyline = map.addPolyline(checkpointline);
     }
 
 }
