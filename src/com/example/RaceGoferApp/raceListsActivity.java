@@ -1,6 +1,7 @@
 package com.example.RaceGoferApp;
 
 import android.app.*;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -8,6 +9,7 @@ import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 /**
  * Created by Brian on 11/2/2014.
@@ -56,6 +58,27 @@ public class RaceListsActivity extends FragmentActivity implements ActionBar.Tab
             public void onPageScrollStateChanged(int arg0) {
             }
         });
+
+
+        //If coming from creating race, notify user of success
+        Intent thisIntent = getIntent();
+        String createSuccess = thisIntent.getStringExtra("create_success");
+
+        if(createSuccess != null) {
+            if (createSuccess.equals("true")) {
+                Context context = getApplicationContext();
+                CharSequence text = "Your race was created successfully! You can find it under 'My Races'.";
+                int duration = Toast.LENGTH_LONG;
+                Toast toast = Toast.makeText(context, text, duration);
+                toast.show();
+            } else if (createSuccess.equals("false")) {
+                Context context = getApplicationContext();
+                CharSequence text = "Sorry, but we have failed to create a race. Please try again latter.";
+                int duration = Toast.LENGTH_LONG;
+                Toast toast = Toast.makeText(context, text, duration);
+                toast.show();
+            }
+        }
     }
 
     @Override

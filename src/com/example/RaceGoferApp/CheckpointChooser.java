@@ -2,14 +2,21 @@ package com.example.RaceGoferApp;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.DialogFragment;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.*;
+import org.apache.http.client.utils.URIUtils;
 
+import java.net.URI;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,14 +73,71 @@ public class CheckpointChooser extends Activity implements GoogleMap.OnMapClickL
     }
 
     public void undoButton(View view) {
-        checkpointlist.remove(checkpointlist.size()-1);
+        if(checkpointlist.size() > 0) {
+            checkpointlist.remove(checkpointlist.size() - 1);
+        }
         drawPoints();
     }
 
     public void createButton(View view) {
-        Intent i = new Intent(this, RaceListsActivity.class);
-        i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(i);
+        if(checkpointlist.size() > 0) {
+            Intent thisIntent = getIntent();
+            String racename = thisIntent.getStringExtra("race_name");
+            String type = thisIntent.getStringExtra("type");
+            String location = thisIntent.getStringExtra("location");
+            String password = thisIntent.getStringExtra("password");
+            String managerpassword = thisIntent.getStringExtra("manager_password");
 
+            URLParamEncoder encoder = new URLParamEncoder();
+
+            String params = "raceName=" + encoder.encode(racename) + "&raceType=" + encoder.encode(type) + "&raceLocation=" + encoder.encode(location) + "&";
+            if (!password.equals("")) {
+                params = params + "racePassword=" + encoder.encode(password) + "&";
+            }
+            params = params + "managerPassword=" + encoder.encode(managerpassword) + "&checkPoints=[";
+
+            for(int i = 0; i < checkpointlist.size(); i++){
+                if(i == checkpointlist.size()-1){
+                    params = params + "{%22latitude%22:" + String.valueOf(checkpointlist.get(i).latitude) + ",%22longitude%22:" + String.valueOf(checkpointlist.get(i).latitude) + "}]";
+                }
+                else {
+                    params = params + "{%22latitude%22:" + String.valueOf(checkpointlist.get(i).latitude) + ",%22longitude%22:" + String.valueOf(checkpointlist.get(i).latitude) + "},";
+                }
+            }
+
+
+            String url = "http://" + getString(R.string.site) + getString(R.string.api_create_race) + params;
+
+            HttpConc http = new HttpConc();
+            try {
+                String response = http.sendGet(url);
+                Log.v("HTTP Response", response);
+
+                Intent intent = new Intent(this, RaceListsActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                if(response.equals("Your race was created")) {
+                    intent.putExtra("create_success", "true");
+                }
+                else {
+                    intent.putExtra("create_success", "false");
+                }
+                startActivity(intent);
+            }
+            catch (Exception e){
+                String err = (e.getMessage()==null)?"HTTP Fail":e.getMessage();
+                Log.e("HTTP Error", err);
+                Log.v("HTTP Attempt", url);
+                DialogFragment alert = new HttpErrorAlert();
+                alert.show(getFragmentManager(), "http error alert");
+            }
+        }
+        else {
+            Context context = getApplicationContext();
+            CharSequence text = "Please create checkpoints for your racers by tapping on the map.";
+            int duration = Toast.LENGTH_SHORT;
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
+        }
     }
+
 }

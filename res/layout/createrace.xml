@@ -51,7 +51,7 @@
         <EditText
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/editText3" android:layout_weight="1"/>
+                android:id="@+id/location" android:layout_weight="1"/>
     </LinearLayout>
     <LinearLayout
             android:orientation="horizontal"
@@ -67,7 +67,7 @@
         <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/editText4"/>
+                android:id="@+id/password"/>
     </LinearLayout>
     <TextView
             android:layout_width="wrap_content"
@@ -89,7 +89,7 @@
         <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/editText5" android:layout_gravity="center_horizontal"/>
+                android:id="@+id/managerpassword" android:layout_gravity="center_horizontal"/>
     </LinearLayout>
     <Button
             android:layout_width="148dp"
