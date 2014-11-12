@@ -17,6 +17,7 @@ public class RacerViewActivity extends Activity{
     GPSTracker gps;
     private double latitude;
     private double longitude;
+    String race_id;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -27,6 +28,11 @@ public class RacerViewActivity extends Activity{
         String race = i.getStringExtra("race");
         ActionBar ab = getActionBar();
         ab.setTitle(race);
+
+        //Get Race Id from intent
+        race_id = i.getStringExtra("race_id");
+
+        //TODO - call the get race info api function
 
         //Map Setup
         map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();

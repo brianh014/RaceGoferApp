@@ -41,6 +41,7 @@ public class JoinableRacesFragment extends Fragment {
                 Intent i = new Intent(getActivity(), RacerViewActivity.class);
                 // sending data to new activity
                 i.putExtra("race", race);
+                i.putExtra("race_id", "1307dc6a-6200-4803-90ba-cb080337a1f1");
                 startActivity(i);
 
             }
