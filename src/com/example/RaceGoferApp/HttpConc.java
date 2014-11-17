@@ -1,5 +1,6 @@
 package com.example.RaceGoferApp;
 
+import android.util.Base64;
 import android.util.Log;
 import org.apache.http.params.CoreProtocolPNames;
 
@@ -20,15 +21,19 @@ public class HttpConc {
 
     // HTTP GET request
     public String sendGet(String url) throws Exception {
-
         URL obj = new URL(url);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
         // optional default is GET
         con.setRequestMethod("GET");
 
-        //add request header
-        con.setRequestProperty("User-Agent", CoreProtocolPNames.USER_AGENT);
+        //add request header - do authorization
+        //Hard coded user password
+        URLParamEncoder encoder = new URLParamEncoder();
+        String credentials = "user:password";
+        String encoding = Base64.encodeToString(credentials.getBytes("UTF-8"),Base64.DEFAULT);
+        Log.v("Auth", encoding);
+        con.setRequestProperty("Authorization", "Basic " + encoding);
 
         responseCode = con.getResponseCode();
         Log.v("HTTP","\nSending 'GET' request to URL : " + url);
