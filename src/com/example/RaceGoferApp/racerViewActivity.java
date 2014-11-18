@@ -2,8 +2,10 @@ package com.example.RaceGoferApp;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.DialogFragment;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -33,7 +35,19 @@ public class RacerViewActivity extends Activity{
         race_id = i.getStringExtra("race_id");
 
         //TODO - call the get race info api function
+        HttpConc http = new HttpConc();
+        try {
+           // GetRaceInfo(race_id);
+            http.sendGet("http://racegofer.com/api/GetRaceInfo?raceId=" + race_id);
+            }
+        catch (Exception e){
+            String err = (e.getMessage()==null)?"HTTP Fail":e.getMessage();
+            Log.e("HTTP Error", err);
+            DialogFragment alert = new HttpErrorAlert();
+            alert.show(getFragmentManager(), "http error alert");
+        }
 
+       //GetRaceInfo(race_id);
         //Map Setup
         map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
         map.setMyLocationEnabled(true);
