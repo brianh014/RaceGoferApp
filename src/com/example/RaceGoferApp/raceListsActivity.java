@@ -3,6 +3,7 @@ package com.example.RaceGoferApp;
 import android.app.*;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
@@ -110,6 +111,16 @@ public class RaceListsActivity extends FragmentActivity implements ActionBar.Tab
             case R.id.action_new:
                 Intent i = new Intent(this, CreateRace.class);
                 startActivity(i);
+                return true;
+            case R.id.action_logout:
+                SharedPreferences settings = this.getSharedPreferences("com.example.RaceGoferApp", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.remove("username");
+                editor.remove("password");
+                editor.commit();
+                Intent intent = new Intent(this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

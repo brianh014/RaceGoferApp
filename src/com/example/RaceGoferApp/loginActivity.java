@@ -10,12 +10,14 @@ import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
 public class LoginActivity extends Activity {
     EditText usernameText;
     EditText passwordText;
+    CheckBox remBox;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -27,15 +29,25 @@ public class LoginActivity extends Activity {
 
         usernameText = (EditText)findViewById(R.id.usernameText);
         passwordText = (EditText)findViewById(R.id.passwordText);
+        remBox = (CheckBox)findViewById(R.id.rememberBox);
 
         SharedPreferences settings = this.getSharedPreferences("com.example.RaceGoferApp", Context.MODE_PRIVATE);
-
         String username = settings.getString("username", "__failure__");
         String password = settings.getString("password", "__failure__");
-        if(username != "__failure__" || password != "__failure__"){
+        if(username != "__failure__" && password != "__failure__"){
             Intent intent = new Intent(this, RaceListsActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
+        }
+
+        String usernameRem = settings.getString("username_rem", "__failure__");
+        String passwordRem = settings.getString("password_rem", "__failure__");
+        Boolean remChecked = settings.getBoolean("remChecked", false);
+
+        if(usernameRem != "__failure__" && passwordRem != "__failure__" && remChecked) {
+            usernameText.setText(usernameRem);
+            passwordText.setText(passwordRem);
+            remBox.setChecked(true);
         }
 
         ActionBar ab = getActionBar();
@@ -75,6 +87,19 @@ public class LoginActivity extends Activity {
             editor.putString("username", usernameText.getText().toString());
             editor.putString("password", passwordText.getText().toString());
             editor.commit();
+
+            if(remBox.isChecked()){
+                editor.putString("username_rem", usernameText.getText().toString());
+                editor.putString("password_rem", passwordText.getText().toString());
+                editor.putBoolean("remChecked", true);
+                editor.commit();
+            }
+            else{
+                editor.putString("username_rem", "__failure__");
+                editor.putString("password_rem", "__failure__");
+                editor.putBoolean("remChecked", false);
+                editor.commit();
+            }
 
             Log.v("Login", "Login success");
             Context context = getApplicationContext();
