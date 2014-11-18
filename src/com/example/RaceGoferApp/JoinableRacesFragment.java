@@ -21,32 +21,24 @@ import java.util.Map;
 /**
  * Created by Brian on 11/2/2014.
  */
-public class JoinableRacesFragment extends Fragment {
+public class JoinableRacesFragment extends Fragment{
+    View rootView;
+    Button searchButton;
     private ListView mListView;
+    private List<Map<String, String>> raceList = new ArrayList<Map<String, String>>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        rootView = inflater.inflate(R.layout.fragment_joinableraces, container, false);
 
-        View rootView = inflater.inflate(R.layout.fragment_joinableraces, container, false);
-
-        //Get joinable races
-        JSONArray races = new JSONArray();
-        races = getRaces();
-
-        List<Map<String, String>> raceList = new ArrayList<Map<String, String>>();
-        try{
-            for(int i=0;i<races.length();i++){
-                JSONObject c = races.getJSONObject(i);
-                String guid = c.getString("raceId");
-                String name = c.getString("raceName");
-                raceList.add(createRace(guid,name));
+        searchButton = (Button)rootView.findViewById(R.id.searchButton);
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchRaces();
             }
-        }
-        catch (JSONException e){
-            String err = (e.getMessage()==null)?"JSON Error":e.getMessage();
-            Log.e("JSON Error", err);
-        }
+        });
 
         mListView = (ListView) rootView.findViewById(R.id.listView);
         mListView.setAdapter(new SimpleAdapter(rootView.getContext(), raceList, android.R.layout.simple_list_item_1, new String[]{"race"}, new int[]{android.R.id.text1}));
@@ -73,13 +65,37 @@ public class JoinableRacesFragment extends Fragment {
         return rootView;
     }
 
-    JSONArray getRaces() {
+    public void searchRaces(){
+        //Get joinable races
+        JSONArray races = new JSONArray();
+        EditText search = (EditText)rootView.findViewById(R.id.searchText);
+        races = getRaces(search.getText().toString());
+
+        try{
+            raceList.clear();
+            for(int i=0;i<races.length();i++){
+                JSONObject c = races.getJSONObject(i);
+                String guid = c.getString("raceId");
+                String name = c.getString("raceName");
+                raceList.add(createRace(guid,name));
+            }
+        }
+        catch (JSONException e){
+            String err = (e.getMessage()==null)?"JSON Error":e.getMessage();
+            Log.e("JSON Error", err);
+        }
+
+        mListView.setAdapter(new SimpleAdapter(rootView.getContext(), raceList, android.R.layout.simple_list_item_1, new String[]{"race"}, new int[]{android.R.id.text1}));
+    }
+
+    JSONArray getRaces(String search) {
         HttpConc http = new HttpConc();
         String response;
         JSONArray obj = new JSONArray();
 
         try{
-            response = http.sendGet("http://racegofer.com/api/GetRaces");
+            URLParamEncoder encoder = new URLParamEncoder();
+            response = http.sendGet("http://racegofer.com/api/GetRaces?search=" + encoder.encode(search));
         }
         catch (Exception e){
             String err = (e.getMessage()==null)?"GetRaces HTTP Error":e.getMessage();
