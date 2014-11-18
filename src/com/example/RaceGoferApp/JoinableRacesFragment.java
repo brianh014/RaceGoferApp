@@ -89,7 +89,7 @@ public class JoinableRacesFragment extends Fragment{
     }
 
     JSONArray getRaces(String search) {
-        HttpConc http = new HttpConc();
+        HttpConc http = new HttpConc(getActivity().getApplicationContext());
         String response;
         JSONArray obj = new JSONArray();
 

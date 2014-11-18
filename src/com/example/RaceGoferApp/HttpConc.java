@@ -1,5 +1,8 @@
 package com.example.RaceGoferApp;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
 import org.apache.http.params.CoreProtocolPNames;
@@ -18,6 +21,11 @@ import javax.net.ssl.HttpsURLConnection;
 public class HttpConc {
 
     int responseCode;
+    SharedPreferences settings;
+
+    public HttpConc(Context context){
+        settings = context.getSharedPreferences("com.example.RaceGoferApp", Context.MODE_PRIVATE);
+    }
 
     // HTTP GET request
     public String sendGet(String url) throws Exception {
@@ -29,10 +37,11 @@ public class HttpConc {
 
         //add request header - do authorization
         //Hard coded user password
-        URLParamEncoder encoder = new URLParamEncoder();
-        String credentials = "user:password";
-        String encoding = Base64.encodeToString(credentials.getBytes("UTF-8"),Base64.DEFAULT);
-        Log.v("Auth", encoding);
+        String username = settings.getString("username", "__failure__");
+        String password = settings.getString("password", "__failure__");
+        Log.v("HTTP Auth", username + " : " + password);
+        String credentials = username + ":" + password;
+        String encoding = Base64.encodeToString(credentials.getBytes("UTF-8"), Base64.DEFAULT);
         con.setRequestProperty("Authorization", "Basic " + encoding);
 
         responseCode = con.getResponseCode();
@@ -87,5 +96,26 @@ public class HttpConc {
         in.close();
 
         return response.toString();
+    }
+
+    public int checkLogin(String username, String password) throws Exception{
+        URL obj = new URL("http://racegofer.com/api/greeting");
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+
+        // optional default is GET
+        con.setRequestMethod("GET");
+
+        //add request header - do authorization
+        URLParamEncoder encoder = new URLParamEncoder();
+        String credentials = username + ":" + password;
+        String encoding = Base64.encodeToString(credentials.getBytes("UTF-8"),Base64.DEFAULT);
+        Log.v("Auth", encoding);
+        con.setRequestProperty("Authorization", "Basic " + encoding);
+
+        responseCode = con.getResponseCode();
+        Log.v("HTTP","\nChecking login");
+        Log.v("HTTP","Response Code : " + responseCode);
+
+        return responseCode;
     }
 }

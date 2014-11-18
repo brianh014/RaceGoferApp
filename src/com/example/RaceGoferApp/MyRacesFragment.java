@@ -72,7 +72,7 @@ public class MyRacesFragment extends Fragment {
     }
 
     JSONArray getRaces() {
-        HttpConc http = new HttpConc();
+        HttpConc http = new HttpConc(getActivity().getApplicationContext());
         String response;
         JSONArray obj = new JSONArray();
 
