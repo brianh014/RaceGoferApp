@@ -56,13 +56,13 @@ public class JoinableRacesFragment extends Fragment {
                                     int position, long id) {
 
                 // selected item
-                String race = ((TextView) view).getText().toString();
+                Map<String,String> item = (Map) mListView.getItemAtPosition(position);
 
                 // Launching new Activity on selecting single List Item
                 Intent i = new Intent(getActivity(), RacerViewActivity.class);
                 // sending data to new activity
-                i.putExtra("race", race);
-                i.putExtra("race_id", "1307dc6a-6200-4803-90ba-cb080337a1f1");
+                i.putExtra("race", item.get("race"));
+                i.putExtra("race_id", item.get("race_id"));
                 startActivity(i);
 
             }
@@ -105,6 +105,7 @@ public class JoinableRacesFragment extends Fragment {
     private HashMap<String,String> createRace(String guid, String racename){
         HashMap<String,String> race = new HashMap<String,String>();
         race.put("race", racename);
+        race.put("race_id", guid);
         return race;
     }
 }
