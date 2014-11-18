@@ -65,6 +65,8 @@ public class JoinableRacesFragment extends Fragment {
                 i.putExtra("race_id", item.get("race_id"));
                 startActivity(i);
 
+                //TODO - join user into the race
+
             }
         });
 
