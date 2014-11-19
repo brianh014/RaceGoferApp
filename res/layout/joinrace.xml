@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Race:"
+                android:id="@+id/textView" android:layout_marginLeft="25dp" android:layout_marginTop="10dp"/>
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="race name"
+                android:id="@+id/raceNameText" android:layout_marginTop="10dp" android:layout_marginLeft="10dp"/>
+    </LinearLayout>
+    <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Type: "
+                android:id="@+id/textView2" android:layout_marginLeft="25dp" android:layout_marginTop="10dp"/>
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="type"
+                android:id="@+id/typeText" android:layout_marginLeft="10dp" android:layout_marginTop="10dp"/>
+    </LinearLayout>
+    <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Location:"
+                android:id="@+id/textView3" android:layout_marginLeft="25dp" android:layout_marginTop="10dp"/>
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="location"
+                android:id="@+id/locationText" android:layout_marginLeft="10dp" android:layout_marginTop="10dp"/>
+    </LinearLayout>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Join Race As:"
+            android:id="@+id/textView4" android:layout_marginLeft="20dp" android:layout_marginTop="10dp"/>
+    <RadioGroup
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:onClick="radioGroupClick">
+        <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Participant"
+                android:id="@+id/participantButton" android:checked="true" android:layout_marginLeft="40dp"
+                android:layout_marginTop="5dp"/>
+        <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Spectator"
+                android:id="@+id/spectatorButton" android:checked="false" android:layout_marginLeft="40dp"
+                android:layout_marginTop="5dp"/>
+        <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Manager"
+                android:id="@+id/managerButton" android:checked="false" android:layout_marginLeft="40dp"
+                android:layout_marginTop="5dp"/>
+    </RadioGroup>
+    <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="10dp">
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Password:"
+                android:id="@+id/passwordText" android:layout_marginLeft="30dp"/>
+        <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:ems="10"
+                android:id="@+id/passwordField" android:layout_weight="1" android:layout_marginRight="10dp"/>
+    </LinearLayout>
+    <Button
+            android:layout_width="110dp"
+            android:layout_height="wrap_content"
+            android:text="Join Race"
+            android:id="@+id/joinButton" android:layout_gravity="center_horizontal" android:layout_marginTop="20dp"
+            android:onClick="raceClick"/>
+    <Button
+            android:layout_width="110dp"
+            android:layout_height="wrap_content"
+            android:text="Back"
+            android:id="@+id/backButton" android:layout_gravity="center_horizontal" android:layout_marginTop="20dp"
+            android:onClick="backClick"/>
+</LinearLayout>

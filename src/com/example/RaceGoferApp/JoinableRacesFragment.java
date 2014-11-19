@@ -51,14 +51,10 @@ public class JoinableRacesFragment extends Fragment{
                 Map<String,String> item = (Map) mListView.getItemAtPosition(position);
 
                 // Launching new Activity on selecting single List Item
-                Intent i = new Intent(getActivity(), RacerViewActivity.class);
+                Intent i = new Intent(getActivity(), JoinRaceActivity.class);
                 // sending data to new activity
-                i.putExtra("race", item.get("race"));
                 i.putExtra("race_id", item.get("race_id"));
                 startActivity(i);
-
-                //TODO - join user into the race
-
             }
         });
 

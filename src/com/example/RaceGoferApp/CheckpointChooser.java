@@ -111,16 +111,11 @@ public class CheckpointChooser extends Activity implements GoogleMap.OnMapClickL
             HttpConc http = new HttpConc(getApplicationContext());
             try {
                 String response = http.sendGet(url);
-                Log.v("HTTP Response", response);
+                String joinurl = "http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(response) + "&password=" + encoder.encode(managerpassword) + "&userType=Manager";
+                http.sendGet(joinurl);
 
                 Intent intent = new Intent(this, RaceListsActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                if(response.equals("Your race was created")) {
-                    intent.putExtra("create_success", "true");
-                }
-                else {
-                    intent.putExtra("create_success", "false");
-                }
                 startActivity(intent);
             }
             catch (Exception e){
