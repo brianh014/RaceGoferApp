@@ -36,7 +36,7 @@
                 android:layout_height="wrap_content"
                 android:inputType="textPersonName"
                 android:ems="10"
-                android:id="@+id/editText" android:layout_weight="1" android:layout_marginRight="15dp"/>
+                android:id="@+id/usernameText" android:layout_weight="1" android:layout_marginRight="15dp"/>
     </LinearLayout>
     <LinearLayout
             android:orientation="horizontal"
@@ -53,13 +53,13 @@
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
                 android:ems="10"
-                android:id="@+id/editText2" android:layout_weight="1" android:layout_marginRight="15dp"/>
+                android:id="@+id/passwordText" android:layout_weight="1" android:layout_marginRight="15dp"/>
     </LinearLayout>
     <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Remember Me"
-            android:id="@+id/checkBox" android:checked="false" android:layout_marginLeft="15dp"/>
+            android:id="@+id/rememberBox" android:checked="false" android:layout_marginLeft="15dp"/>
     <Button
             android:layout_width="125dp"
             android:layout_height="wrap_content"

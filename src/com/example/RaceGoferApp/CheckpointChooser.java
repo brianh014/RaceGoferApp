@@ -108,7 +108,7 @@ public class CheckpointChooser extends Activity implements GoogleMap.OnMapClickL
 
             String url = "http://" + getString(R.string.site) + getString(R.string.api_create_race) + params;
 
-            HttpConc http = new HttpConc();
+            HttpConc http = new HttpConc(getApplicationContext());
             try {
                 String response = http.sendGet(url);
                 Log.v("HTTP Response", response);

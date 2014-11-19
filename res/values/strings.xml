@@ -2,6 +2,8 @@
 <resources>
     <string name="app_name">Race-Gofer</string>
     <string name="icon_new">New Icon</string>
+    <string name="icon_overflow">Overflow Icon</string>
+    <string name="logout">Logout</string>
     <string name="site">www.racegofer.com</string>
     <string name="api_create_race">/api/CreateRace?</string>
 </resources>

@@ -5,4 +5,7 @@
           android:icon="@drawable/ic_action_new"
           android:title="@string/icon_new"
           android:showAsAction="ifRoom" />
+    <item android:id="@+id/action_logout"
+          android:title="@string/logout"
+          android:showAsAction="never" />
 </menu>
