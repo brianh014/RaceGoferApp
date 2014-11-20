@@ -6,8 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -15,29 +14,45 @@ import org.json.JSONObject;
  * Created by Brian on 11/18/2014.
  */
 public class JoinRaceActivity extends Activity {
+    String raceId;
+    JSONObject raceInfo;
     TextView raceText;
     TextView typeText;
     TextView locationText;
+    TextView passwordText;
+    EditText passwordField;
+    RadioButton participant;
+    RadioButton spectator;
+    RadioButton manager;
+    CheckBox hideBox;
+    Boolean hasPass;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.joinrace);
         Intent i = getIntent();
-        JSONObject raceInfo;
+        raceId = i.getStringExtra("race_id");
 
         raceText = (TextView)findViewById(R.id.raceNameText);
         typeText = (TextView)findViewById(R.id.typeText);
         locationText = (TextView)findViewById(R.id.locationText);
+        passwordText = (TextView)findViewById(R.id.passwordText);
+        passwordField = (EditText)findViewById(R.id.passwordField);
+        participant = (RadioButton)findViewById(R.id.participantButton);
+        spectator = (RadioButton)findViewById(R.id.spectatorButton);
+        manager = (RadioButton)findViewById(R.id.managerButton);
+        hideBox = (CheckBox)findViewById(R.id.hideCheckBox);
 
         HttpConc http = new HttpConc(getApplicationContext());
         URLParamEncoder encoder = new URLParamEncoder();
         try{
-            String response = http.sendGet("http://racegofer.com/api/GetRaceInfo?raceId=" + encoder.encode(i.getStringExtra("race_id")));
+            String response = http.sendGet("http://racegofer.com/api/GetRaceInfo?raceId=" + encoder.encode(raceId));
             raceInfo = new JSONObject(response);
             raceText.setText(raceInfo.getString("raceName"));
             typeText.setText(raceInfo.getString("raceType"));
             locationText.setText(raceInfo.getString("location"));
+            hasPass = true; //Currently hardcoded, get if race has password when it is added to call
         }
         catch (Exception e){
             String err = (e.getMessage()==null)?"JoinRaces Error":e.getMessage();
@@ -49,13 +64,77 @@ public class JoinRaceActivity extends Activity {
             toast.show();
             this.finish();
         }
+
+        if(!hasPass){
+            passwordText.setVisibility(View.GONE);
+            passwordField.setVisibility(View.GONE);
+        }
     }
 
     public void radioGroupClick(View view){
-
+        if(participant.isChecked() && hasPass){
+            passwordText.setVisibility(View.VISIBLE);
+            passwordField.setVisibility(View.VISIBLE);
+        }
+        else if(participant.isChecked() && !hasPass){
+            passwordText.setVisibility(View.GONE);
+            passwordField.setVisibility(View.GONE);
+        }
+        if(spectator.isChecked() && hasPass){
+            passwordText.setVisibility(View.VISIBLE);
+            passwordField.setVisibility(View.VISIBLE);
+        }
+        else if(spectator.isChecked() && !hasPass){
+            passwordText.setVisibility(View.GONE);
+            passwordField.setVisibility(View.GONE);
+        }
+        else if(manager.isChecked()){
+            passwordText.setVisibility(View.VISIBLE);
+            passwordField.setVisibility(View.VISIBLE);
+        }
     }
 
     public void raceClick(View view){
+        if(passwordField.getText().toString().equals("") && hasPass){
+            Context context = getApplicationContext();
+            CharSequence text = "Please provide a password.";
+            int duration = Toast.LENGTH_SHORT;
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
+            return;
+        }
+
+        HttpConc http = new HttpConc(getApplicationContext());
+        URLParamEncoder encoder = new URLParamEncoder();
+        try{
+            Intent i = new Intent(getApplication(), RacerViewActivity.class);
+            if(participant.isChecked()) {
+                http.sendGet("http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(raceId) + "&password=" + encoder.encode(passwordField.getText().toString()) + "&userType=Participant");
+                i.putExtra("type", "Participant");
+            }
+            else if(spectator.isChecked()){
+                http.sendGet("http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(raceId) + "&password=" + encoder.encode(passwordField.getText().toString()) + "&userType=Spectator");
+                i.putExtra("type", "Spectator");
+            }
+            else if(manager.isChecked()){
+                http.sendGet("http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(raceId) + "&password=" + encoder.encode(passwordField.getText().toString()) + "&userType=Manager");
+                i.putExtra("type", "Manager");
+            }
+
+            i.putExtra("race", raceInfo.getString("raceName"));
+            i.putExtra("race_id", raceId);
+            i.putExtra("hidden", hideBox.isChecked());
+            startActivity(i);
+        }
+        catch (Exception e){
+            String err = (e.getMessage()==null)?"JoinRaces Error":e.getMessage();
+            Log.e("JoinRaces Error", err);
+            Context context = getApplicationContext();
+            CharSequence text = "Error in communicating with server.";
+            int duration = Toast.LENGTH_SHORT;
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
+        }
 
     }
 

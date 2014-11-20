@@ -70,19 +70,19 @@
                 android:layout_height="wrap_content"
                 android:text="Participant"
                 android:id="@+id/participantButton" android:checked="true" android:layout_marginLeft="40dp"
-                android:layout_marginTop="5dp"/>
+                android:layout_marginTop="5dp" android:onClick="radioGroupClick"/>
         <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Spectator"
                 android:id="@+id/spectatorButton" android:checked="false" android:layout_marginLeft="40dp"
-                android:layout_marginTop="5dp"/>
+                android:layout_marginTop="5dp" android:onClick="radioGroupClick"/>
         <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Manager"
                 android:id="@+id/managerButton" android:checked="false" android:layout_marginLeft="40dp"
-                android:layout_marginTop="5dp"/>
+                android:layout_marginTop="5dp" android:onClick="radioGroupClick"/>
     </RadioGroup>
     <LinearLayout
             android:orientation="horizontal"
@@ -101,6 +101,12 @@
                 android:ems="10"
                 android:id="@+id/passwordField" android:layout_weight="1" android:layout_marginRight="10dp"/>
     </LinearLayout>
+    <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hide my location from other participants and spectators"
+            android:id="@+id/hideCheckBox" android:layout_marginTop="10dp" android:layout_marginLeft="25dp"
+            android:checked="false"/>
     <Button
             android:layout_width="110dp"
             android:layout_height="wrap_content"

@@ -41,7 +41,7 @@ public class JoinableRacesFragment extends Fragment{
         });
 
         mListView = (ListView) rootView.findViewById(R.id.listView);
-        mListView.setAdapter(new SimpleAdapter(rootView.getContext(), raceList, android.R.layout.simple_list_item_1, new String[]{"race"}, new int[]{android.R.id.text1}));
+        mListView.setAdapter(new SimpleAdapter(rootView.getContext(), raceList, android.R.layout.simple_list_item_2, new String[]{"race"}, new int[]{android.R.id.text1}));
 
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,

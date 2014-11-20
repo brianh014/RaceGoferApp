@@ -23,16 +23,42 @@ import java.util.Map;
  */
 public class MyRacesFragment extends Fragment {
     private ListView mListView;
+    View rootView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View rootView = inflater.inflate(R.layout.fragment_myraces, container, false);
+        rootView = inflater.inflate(R.layout.fragment_myraces, container, false);
 
-        //Get joined races
-        JSONArray races = new JSONArray();
-        races = getRaces();
+        List<Map<String, String>> raceList = raceList();
+
+        mListView = (ListView) rootView.findViewById(R.id.listView);
+        mListView.setAdapter(new SimpleAdapter(rootView.getContext(), raceList, android.R.layout.simple_list_item_2, new String[]{"race"}, new int[]{android.R.id.text1}));
+
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+
+                // selected item
+                Map<String,String> item = (Map) mListView.getItemAtPosition(position);
+
+                // Launching new Activity on selecting single List Item
+                Intent i = new Intent(getActivity(), RacerViewActivity.class);
+                // sending data to new activity
+                i.putExtra("race", item.get("race"));
+                i.putExtra("race_id", item.get("race_id"));
+                //putExtra of racer type when UserRaces is updated
+                startActivity(i);
+
+            }
+        });
+
+        return rootView;
+    }
+
+    private List<Map<String, String>> raceList(){
+        JSONArray races = getRaces();
 
         List<Map<String, String>> raceList = new ArrayList<Map<String, String>>();
         try{
@@ -48,38 +74,17 @@ public class MyRacesFragment extends Fragment {
             Log.e("JSON Error", err);
         }
 
-        mListView = (ListView) rootView.findViewById(R.id.listView);
-        mListView.setAdapter(new SimpleAdapter(rootView.getContext(), raceList, android.R.layout.simple_list_item_1, new String[]{"race"}, new int[]{android.R.id.text1}));
-
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-
-                // selected item
-                Map<String,String> item = (Map) mListView.getItemAtPosition(position);
-
-                // Launching new Activity on selecting single List Item
-                Intent i = new Intent(getActivity(), RacerViewActivity.class);
-                // sending data to new activity
-                i.putExtra("race", item.get("race"));
-                i.putExtra("race_id", item.get("race_id"));
-                startActivity(i);
-
-            }
-        });
-
-        return rootView;
+        return raceList;
     }
 
-    JSONArray getRaces() {
+    private JSONArray getRaces() {
         HttpConc http = new HttpConc(getActivity().getApplicationContext());
         String response;
         JSONArray obj = new JSONArray();
 
         try{
             URLParamEncoder encoder = new URLParamEncoder();
-            //TODO - Get logged in user, currently hard coded to littlebass09
-            response = http.sendGet("http://racegofer.com/api/UserRaces?userName=" + encoder.encode("littlebass09"));
+            response = http.sendGet("http://racegofer.com/api/UserRaces");
         }
         catch (Exception e){
             String err = (e.getMessage()==null)?"UserRaces HTTP Error":e.getMessage();
@@ -109,5 +114,12 @@ public class MyRacesFragment extends Fragment {
         race.put("race", racename);
         race.put("race_id", guid);
         return race;
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        List<Map<String, String>> raceList = raceList();
+        mListView.setAdapter(new SimpleAdapter(rootView.getContext(), raceList, android.R.layout.simple_list_item_2, new String[]{"race"}, new int[]{android.R.id.text1}));
     }
 }
