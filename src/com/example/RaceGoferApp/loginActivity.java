@@ -28,7 +28,7 @@ public class LoginActivity extends Activity {
         StrictMode.setThreadPolicy(policy);
 
         usernameText = (EditText)findViewById(R.id.usernameText);
-        passwordText = (EditText)findViewById(R.id.passwordText);
+        passwordText = (EditText)findViewById(R.id.passwordTextField);
         remBox = (CheckBox)findViewById(R.id.rememberBox);
 
         SharedPreferences settings = this.getSharedPreferences("com.example.RaceGoferApp", Context.MODE_PRIVATE);
@@ -36,7 +36,7 @@ public class LoginActivity extends Activity {
         String password = settings.getString("password", "__failure__");
         if(username != "__failure__" && password != "__failure__"){
             Intent intent = new Intent(this, RaceListsActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
         }
 
@@ -120,6 +120,11 @@ public class LoginActivity extends Activity {
 
         Intent intent = new Intent(this, RaceListsActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
+
+    public void signupClick(View view){
+        Intent intent = new Intent(this, SignupActivity.class);
         startActivity(intent);
     }
 }

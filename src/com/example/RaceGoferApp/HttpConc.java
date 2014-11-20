@@ -36,7 +36,6 @@ public class HttpConc {
         con.setRequestMethod("GET");
 
         //add request header - do authorization
-        //Hard coded user password
         String username = settings.getString("username", "__failure__");
         String password = settings.getString("password", "__failure__");
         Log.v("HTTP Auth", username + " : " + password);
@@ -59,7 +58,6 @@ public class HttpConc {
         in.close();
 
         return response.toString();
-
     }
 
     // HTTP POST request
@@ -117,5 +115,32 @@ public class HttpConc {
         Log.v("HTTP","Response Code : " + responseCode);
 
         return responseCode;
+    }
+
+    public String sendGetNoAuth(String url) throws Exception {
+        URL obj = new URL(url);
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+
+        // optional default is GET
+        con.setRequestMethod("GET");
+
+        //add request header
+        con.setRequestProperty("User-Agent", CoreProtocolPNames.USER_AGENT);
+
+        responseCode = con.getResponseCode();
+        Log.v("HTTP","\nSending 'GET No Auth' request to URL : " + url);
+        Log.v("HTTP","Response Code : " + responseCode);
+
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(con.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
+        in.close();
+
+        return response.toString();
     }
 }
