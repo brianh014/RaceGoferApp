@@ -48,11 +48,12 @@ public class JoinRaceActivity extends Activity {
         URLParamEncoder encoder = new URLParamEncoder();
         try{
             String response = http.sendGet("http://racegofer.com/api/GetRaceInfo?raceId=" + encoder.encode(raceId));
+            Log.v("Response", response);
             raceInfo = new JSONObject(response);
             raceText.setText(raceInfo.getString("raceName"));
             typeText.setText(raceInfo.getString("raceType"));
             locationText.setText(raceInfo.getString("location"));
-            hasPass = true; //Currently hardcoded, get if race has password when it is added to call
+            hasPass = raceInfo.getBoolean("raceHasPassword");
         }
         catch (Exception e){
             String err = (e.getMessage()==null)?"JoinRaces Error":e.getMessage();
@@ -108,23 +109,40 @@ public class JoinRaceActivity extends Activity {
         URLParamEncoder encoder = new URLParamEncoder();
         try{
             Intent i = new Intent(getApplication(), RacerViewActivity.class);
+            String response = "0";
             if(participant.isChecked()) {
-                http.sendGet("http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(raceId) + "&password=" + encoder.encode(passwordField.getText().toString()) + "&userType=Participant");
+                response = http.sendGet("http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(raceId) + "&password=" + encoder.encode(passwordField.getText().toString()) + "&userType=Participant");
                 i.putExtra("type", "Participant");
             }
             else if(spectator.isChecked()){
-                http.sendGet("http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(raceId) + "&password=" + encoder.encode(passwordField.getText().toString()) + "&userType=Spectator");
+                response = http.sendGet("http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(raceId) + "&password=" + encoder.encode(passwordField.getText().toString()) + "&userType=Spectator");
                 i.putExtra("type", "Spectator");
             }
             else if(manager.isChecked()){
-                http.sendGet("http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(raceId) + "&password=" + encoder.encode(passwordField.getText().toString()) + "&userType=Manager");
+                response = http.sendGet("http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(raceId) + "&password=" + encoder.encode(passwordField.getText().toString()) + "&userType=Manager");
                 i.putExtra("type", "Manager");
             }
 
             i.putExtra("race", raceInfo.getString("raceName"));
             i.putExtra("race_id", raceId);
             i.putExtra("hidden", hideBox.isChecked());
-            startActivity(i);
+            if(response.equals("0")){
+                Context context = getApplicationContext();
+                CharSequence text = "Incorrect password.";
+                int duration = Toast.LENGTH_SHORT;
+                Toast toast = Toast.makeText(context, text, duration);
+                toast.show();
+            }
+            else if(response.equals("1")){
+                startActivity(i);
+            }
+            else{
+                Context context = getApplicationContext();
+                CharSequence text = "There was an error joining the race.";
+                int duration = Toast.LENGTH_SHORT;
+                Toast toast = Toast.makeText(context, text, duration);
+                toast.show();
+            }
         }
         catch (Exception e){
             String err = (e.getMessage()==null)?"JoinRaces Error":e.getMessage();

@@ -48,6 +48,7 @@ public class MyRacesFragment extends Fragment {
                 // sending data to new activity
                 i.putExtra("race", item.get("race"));
                 i.putExtra("race_id", item.get("race_id"));
+                i.putExtra("user_type", item.get("type"));
                 //putExtra of racer type when UserRaces is updated
                 startActivity(i);
 
@@ -66,7 +67,8 @@ public class MyRacesFragment extends Fragment {
                 JSONObject c = races.getJSONObject(i);
                 String guid = c.getString("raceId");
                 String name = c.getString("raceName");
-                raceList.add(createRace(guid,name));
+                String type = c.getString("type");
+                raceList.add(createRace(guid,name, type));
             }
         }
         catch (JSONException e){
@@ -109,10 +111,11 @@ public class MyRacesFragment extends Fragment {
         return obj;
     }
 
-    private HashMap<String,String> createRace(String guid, String racename){
+    private HashMap<String,String> createRace(String guid, String racename, String type){
         HashMap<String,String> race = new HashMap<String,String>();
         race.put("race", racename);
         race.put("race_id", guid);
+        race.put("user_type", type);
         return race;
     }
 
