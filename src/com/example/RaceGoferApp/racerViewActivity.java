@@ -10,6 +10,9 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.*;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Created by Brian on 10/30/2014.
@@ -34,20 +37,47 @@ public class RacerViewActivity extends Activity{
         //Get Race Id from intent
         race_id = i.getStringExtra("race_id");
 
+
+        String URL1 = new String();  //Call function GetRaceInfo
+        String URL2 = new String();  //Call function GetUserCoordinates
+
+        String RaceCoordinatesValue= new String(); // Get result of function GetRaceInfo
+        String UserCoordinates = new String();    //Get result of function GetUserCoordinates
+        JSONObject RaceCoordinate=  new JSONObject();
+
         //TODO - call the get race info api function
-        HttpConc http = new HttpConc();
-        try {
-           // GetRaceInfo(race_id);
-            http.sendGet("http://racegofer.com/api/GetRaceInfo?raceId=" + race_id);
-            }
-        catch (Exception e){
+        URL1 =  "http://" + "www.racegofer.com" + "/api/GetRaceInfo?" + "raceId=" + race_id;
+
+        HttpConc http = new HttpConc(getApplicationContext());
+        try
+        {
+            RaceCoordinatesValue= http.sendGet(URL1);
+
+        }
+
+        catch(Exception e)
+        {
             String err = (e.getMessage()==null)?"HTTP Fail":e.getMessage();
             Log.e("HTTP Error", err);
+            Log.v("HTTP Attempt", RaceCoordinatesValue);
             DialogFragment alert = new HttpErrorAlert();
             alert.show(getFragmentManager(), "http error alert");
         }
+        try {
+            RaceCoordinate = new JSONObject(RaceCoordinatesValue);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
-       //GetRaceInfo(race_id);
+        JSONArray CP = new JSONArray();
+        try {
+            CP = new JSONArray(RaceCoordinate.getJSONArray("checkPoints"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+        //GetRaceInfo(race_id);
         //Map Setup
         map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
         map.setMyLocationEnabled(true);
