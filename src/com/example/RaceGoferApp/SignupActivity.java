@@ -60,7 +60,7 @@ public class SignupActivity extends Activity {
             editor.putBoolean("remChecked", false);
             editor.commit();
             Intent intent = new Intent(this, RaceListsActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
         }
         catch (Exception e){
