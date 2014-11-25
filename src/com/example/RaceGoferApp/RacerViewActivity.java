@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.Toast;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -15,15 +17,18 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.*;
+
+
 /**
  * Created by Brian on 10/30/2014.
  */
 public class RacerViewActivity extends Activity{
     private GoogleMap map;
-    GPSTracker gps;
-    private double latitude;
-    private double longitude;
-    String race_id;
+    private GPSTracker gps;
+    private String race_id;
+    private Handler handler;
+    private List userMarkers = new ArrayList();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -42,30 +47,34 @@ public class RacerViewActivity extends Activity{
         map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
         map.setMyLocationEnabled(true);
 
-        setupInfo(race_id);
+        //Draw race checkpoints
+        setupInfo();
 
+        //Create gps tracker and move to users location
         gps = new GPSTracker(RacerViewActivity.this);
         if (gps.canGetLocation()) {
-            latitude = gps.getLatitude();
-            longitude = gps.getLongitude();
+            double latitude = gps.getLatitude();
+            double longitude = gps.getLongitude();
 
-            CameraPosition.Builder current = new CameraPosition.Builder().target(new LatLng(latitude,longitude)).zoom(16);
+            CameraPosition.Builder current = new CameraPosition.Builder().target(new LatLng(latitude, longitude)).zoom(16);
             map.animateCamera(CameraUpdateFactory.newCameraPosition(current.build()));
-        }
-        else {
+        } else {
             gps.showSettingsAlert();
         }
 
-        //drawRacers();
+        //Start a task to repeat getting and sending racer coordinates
+        handler = new Handler();
+        handler.postDelayed(getSendCoords, 1000);
     }
 
-    private void setupInfo(String raceid){
+
+    private void setupInfo(){
         HttpConc http = new HttpConc(getApplicationContext());
         URLParamEncoder encoder = new URLParamEncoder();
         String response;
         try
         {
-            response = http.sendGet("http://racegofer.com/api/GetRaceInfo?raceId=" + encoder.encode(raceid));
+            response = http.sendGet("http://racegofer.com/api/GetRaceInfo?raceId=" + encoder.encode(race_id));
         }
         catch(Exception e)
         {
@@ -98,6 +107,7 @@ public class RacerViewActivity extends Activity{
             return;
         }
 
+        //Parse and draw checkpoints and line
         PolylineOptions checkpointLine = new PolylineOptions();
         for (int i = 0; i < checkpoints.length(); i++) {
             JSONObject checkpoint;
@@ -113,27 +123,83 @@ public class RacerViewActivity extends Activity{
                 return;
             }
             map.addMarker(new MarkerOptions().position(new LatLng(lat,lon)).icon(BitmapDescriptorFactory.fromResource(R.drawable.checkpoint)));
-            checkpointLine.add(new LatLng(lat,lon));
+            checkpointLine.add(new LatLng(lat, lon));
         }
         map.addPolyline(checkpointLine);
     }
 
-    private void drawRacers() {
-        //Draw dummy racers
-        map.addMarker(new MarkerOptions().position(new LatLng(30.6,-96.3)).title("Racer's Name").icon(BitmapDescriptorFactory.fromResource(R.drawable.race_marker_green)));
-        map.addMarker(new MarkerOptions().position(new LatLng(30.62,-96.31)).title("Racer's Name").icon(BitmapDescriptorFactory.fromResource(R.drawable.race_marker_green)));
+    private Runnable getSendCoords = new Runnable() {
+        @Override
+        public void run() {
+            HttpConc http = new HttpConc(getApplicationContext());
+            URLParamEncoder encoder = new URLParamEncoder();
+            String response;
+            //Send current coords
+            try
+            {
+                if (gps.canGetLocation()) {
+                    response = http.sendGet("http://racegofer.com/api/UpdatePosition?raceId=" + encoder.encode(race_id) + "&latitude=" + encoder.encode(Double.toString(gps.getLatitude())) + "&longitude=" + encoder.encode(Double.toString(gps.getLongitude())));
+                }
+            }
+            catch(Exception e)
+            {
+                String err = (e.getMessage()==null)?"HTTP Send Coords Error":e.getMessage();
+                Log.e("HTTP Send Coords Error", err);
+                return;
+            }
 
-        //Draw dummy checkpoints
-        map.addMarker(new MarkerOptions().position(new LatLng(30.6,-96.4)).icon(BitmapDescriptorFactory.fromResource(R.drawable.checkpoint)));
-        map.addMarker(new MarkerOptions().position(new LatLng(30.7,-96.5)).icon(BitmapDescriptorFactory.fromResource(R.drawable.checkpoint)));
-        map.addMarker(new MarkerOptions().position(new LatLng(30.8,-96.4)).icon(BitmapDescriptorFactory.fromResource(R.drawable.checkpoint)));
-        map.addMarker(new MarkerOptions().position(new LatLng(30.3,-96.2)).icon(BitmapDescriptorFactory.fromResource(R.drawable.checkpoint)));
-        PolylineOptions checkpointline = new PolylineOptions()
-                .add(new LatLng(30.6,-96.4))
-                .add(new LatLng(30.7,-96.5))
-                .add(new LatLng(30.8,-96.4))
-                .add(new LatLng(30.3,-96.2));
-        Polyline polyline = map.addPolyline(checkpointline);
+            //Get other racers coords
+            try
+            {
+                response = http.sendGet("http://racegofer.com/api/GetRacerCoordinates?raceId=" + encoder.encode(race_id));
+            }
+            catch(Exception e)
+            {
+                String err = (e.getMessage()==null)?"HTTP Send Coords Error":e.getMessage();
+                Log.e("HTTP Send Coords Error", err);
+                return;
+            }
+
+            JSONArray racerCoords;
+            try {
+                racerCoords = new JSONArray(response);
+            }
+            catch (JSONException e){
+                String err = (e.getMessage()==null)?"JSON Error":e.getMessage();
+                Log.e("JSON Error", err);
+                return;
+            }
+
+            //clear marker list
+            for(int i = 0; i < userMarkers.size(); i++){
+                Marker marker = (Marker)userMarkers.get(i);
+                marker.remove();
+            }
+
+            for(int i = 0; i < racerCoords.length(); i++){
+                JSONObject raceCoord;
+                try{
+                    raceCoord = racerCoords.getJSONObject(i);
+                    Double lat = raceCoord.getDouble("latitude");
+                    Double lon = raceCoord.getDouble("longitude");
+                    String user = raceCoord.getString("userName");
+                    Marker marker = map.addMarker(new MarkerOptions().position(new LatLng(lat,lon)).title(user).icon(BitmapDescriptorFactory.fromResource(R.drawable.race_marker_green)));
+                    userMarkers.add(marker);
+                }
+                catch (JSONException e){
+                    String err = (e.getMessage()==null)?"JSON Error":e.getMessage();
+                    Log.e("JSON Error", err);
+                    return;
+                }
+            }
+
+            handler.postDelayed(this, 1000);
+        }
+    };
+
+    @Override
+    public void onDestroy(){
+        handler.removeCallbacks(getSendCoords);
+        super.onDestroy();
     }
-
 }
