@@ -76,6 +76,30 @@ public class RacerViewActivity extends Activity{
             e.printStackTrace();
         }
 
+        for (int j = 0; j < CP.length(); j++) {
+            JSONObject cp = new JSONObject();
+            Double lon = 0.0;
+            Double lat = 0.0;
+            try {
+                cp = CP.getJSONObject(j);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                lon = cp.getDouble("longitude");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                lat = cp.getDouble("latitude");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+            System.out.println(lon + ", " + lat);
+        }
 
         //GetRaceInfo(race_id);
         //Map Setup
