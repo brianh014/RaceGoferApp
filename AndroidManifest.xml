@@ -33,6 +33,9 @@
                    android:value="@integer/google_play_services_version" />
         <meta-data
                 android:name="com.google.android.maps.v2.API_KEY"
-                android:value="AIzaSyA1LeBG0-1bmjklfTloifZxwmTBL2BiPLw"/>
+                android:value="AIzaSyAZexLhjj2QSN473yZ8d1YE-5SSf7lG1BM"
+                />
     </application>
 </manifest>
+<!-- Debug Key: AIzaSyA1LeBG0-1bmjklfTloifZxwmTBL2BiPLw -->
+<!-- Deploy Key: AIzaSyAZexLhjj2QSN473yZ8d1YE-5SSf7lG1BM-->
