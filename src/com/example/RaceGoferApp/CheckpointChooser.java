@@ -98,10 +98,10 @@ public class CheckpointChooser extends Activity implements GoogleMap.OnMapClickL
 
             for(int i = 0; i < checkpointlist.size(); i++){
                 if(i == checkpointlist.size()-1){
-                    params = params + "{%22latitude%22:" + String.valueOf(checkpointlist.get(i).latitude) + ",%22longitude%22:" + String.valueOf(checkpointlist.get(i).latitude) + "}]";
+                    params = params + "{%22latitude%22:" + String.valueOf(checkpointlist.get(i).latitude) + ",%22longitude%22:" + String.valueOf(checkpointlist.get(i).longitude) + "}]";
                 }
                 else {
-                    params = params + "{%22latitude%22:" + String.valueOf(checkpointlist.get(i).latitude) + ",%22longitude%22:" + String.valueOf(checkpointlist.get(i).latitude) + "},";
+                    params = params + "{%22latitude%22:" + String.valueOf(checkpointlist.get(i).latitude) + ",%22longitude%22:" + String.valueOf(checkpointlist.get(i).longitude) + "},";
                 }
             }
 
