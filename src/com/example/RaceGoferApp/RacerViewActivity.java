@@ -1,12 +1,13 @@
 package com.example.RaceGoferApp;
 
-import android.app.ActionBar;
-import android.app.Activity;
+import android.app.*;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationManager;
+import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -328,7 +329,12 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
 
                 return true;
             case R.id.action_info:
-
+                DialogFragment raceInfo = new RaceInfoDialog();
+                Bundle args = new Bundle();
+                args.putString("id", race_id);
+                args.putString("type", userType);
+                raceInfo.setArguments(args);
+                raceInfo.show(getFragmentManager(), "raceInfo");
                 return true;
             case R.id.action_leave:
 
@@ -338,6 +344,45 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    public static class RaceInfoDialog extends DialogFragment {
+
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            HttpConc http = new HttpConc(getActivity().getApplicationContext());
+            URLParamEncoder encoder = new URLParamEncoder();
+            JSONObject raceInfo;
+            try{
+                String response = http.sendGet("http://racegofer.com/api/GetRaceInfo?raceId=" + encoder.encode(getArguments().getString("id")));
+                raceInfo = new JSONObject(response);
+            }
+            catch (Exception e){
+                String err = (e.getMessage()==null)?"JoinRaces Error":e.getMessage();
+                Log.e("JoinRaces Error", err);
+                Context context = getActivity().getApplicationContext();
+                CharSequence text = "Error in communicating with server.";
+                int duration = Toast.LENGTH_SHORT;
+                Toast toast = Toast.makeText(context, text, duration);
+                toast.show();
+                return null;
+            }
+
+            String message = "Failed to get race information. Please try again later.";
+            try {
+                message = "Race Name: " + raceInfo.getString("raceName") + "\nRace Type: " + raceInfo.getString("raceType") + "\nLocation: " + raceInfo.getString("location") + "\nYour role: " + getArguments().getString("type");
+            }
+            catch (Exception e){}
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setMessage(message)
+                    .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                        }
+                    });
+            return builder.create();
         }
     }
 }
