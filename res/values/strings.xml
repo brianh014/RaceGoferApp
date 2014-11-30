@@ -7,6 +7,7 @@
     <string name="user_lists">Participants</string>
     <string name="race_info">Race Information</string>
     <string name="leave_race">Leave Race</string>
+    <string name="delete_race">Delete Race</string>
     <string name="site">www.racegofer.com</string>
     <string name="api_create_race">/api/CreateRace?</string>
 </resources>

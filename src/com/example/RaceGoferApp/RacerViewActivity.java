@@ -40,6 +40,7 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
     private GoogleMap map;
     private GPSTracker gps;
     private String race_id;
+    private String userType;
     private Handler getHandler;
     private Handler sendHandler;
     private List userMarkers = new ArrayList();
@@ -54,12 +55,17 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.racerview);
 
         Intent i = getIntent();
         String race = i.getStringExtra("race");
         ActionBar ab = getActionBar();
         ab.setTitle(race);
+
+        //Get extras from intent
+        race_id = i.getStringExtra("race_id");
+        userType = i.getStringExtra("user_type");
+
+        setContentView(R.layout.racerview);
 
         //gps setup
         locationClient = new LocationClient(this, this, this);
@@ -79,9 +85,6 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
             locationClient.connect();
             Log.v("Location Services", "Location Enabled");
         }
-
-        //Get Race Id from intent
-        race_id = i.getStringExtra("race_id");
 
         //Map Setup
         map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
@@ -297,6 +300,20 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu){
+        MenuItem raceUsers = menu.findItem(R.id.action_users);
+        if(userType.equals("Spectator")){
+            raceUsers.setVisible(false);
+        }
+
+        MenuItem deleteRace = menu.findItem(R.id.action_delete);
+        if(userType.equals("Spectator") || userType.equals("Participant")){
+            deleteRace.setVisible(false);
+        }
+        return true;
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.racerview_activity_actions, menu);
@@ -314,6 +331,9 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
 
                 return true;
             case R.id.action_leave:
+
+                return true;
+            case R.id.action_delete:
 
                 return true;
             default:

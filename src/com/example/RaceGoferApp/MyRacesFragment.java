@@ -48,8 +48,7 @@ public class MyRacesFragment extends Fragment {
                 // sending data to new activity
                 i.putExtra("race", item.get("race"));
                 i.putExtra("race_id", item.get("race_id"));
-                i.putExtra("user_type", item.get("type"));
-                //putExtra of racer type when UserRaces is updated
+                i.putExtra("user_type", item.get("user_type"));
                 startActivity(i);
 
             }
