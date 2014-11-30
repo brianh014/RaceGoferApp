@@ -8,9 +8,12 @@ import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationManager;
 import android.media.Image;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -31,6 +34,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 
@@ -326,7 +330,8 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
         // Handle presses on the action bar items
         switch (item.getItemId()) {
             case R.id.action_users:
-
+                DialogFragment raceUsers = new UserListDialog();
+                raceUsers.show(getFragmentManager(), "raceUsers");
                 return true;
             case R.id.action_info:
                 DialogFragment raceInfo = new RaceInfoDialog();
@@ -337,10 +342,10 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
                 raceInfo.show(getFragmentManager(), "raceInfo");
                 return true;
             case R.id.action_leave:
-
+                //TODO API leave
                 return true;
             case R.id.action_delete:
-
+                //TODO API delete
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -348,7 +353,6 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
     }
 
     public static class RaceInfoDialog extends DialogFragment {
-
 
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -383,6 +387,30 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
                         }
                     });
             return builder.create();
+        }
+    }
+
+    public static class UserListDialog extends DialogFragment{
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            //Get users in race //TODO add api functionality
+            CharSequence[] userList = {"Brian Holt", "Brian Holt", "Megan Johnson"};
+            final List<String> userNumbers = new LinkedList<String>();
+            userNumbers.add("2145461846");
+            userNumbers.add("2145461846");
+            userNumbers.add("9793247292");
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle("Participants in race")
+                    .setItems(userList, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent callIntent = new Intent(Intent.ACTION_CALL);
+                            callIntent.setData(Uri.parse("tel:" + userNumbers.get(which)));
+                            startActivity(callIntent);
+                        }
+                    });
+            return builder.create();
+
         }
     }
 }
