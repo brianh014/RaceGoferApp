@@ -85,7 +85,7 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
             locationEnabled = false;
             Toast.makeText(this, "Enable location services for accurate data", Toast.LENGTH_SHORT).show();
         }
-        else {
+        else if(!userType.equals("Spectator")){
             locationEnabled = true;
             locationClient.connect();
             Log.v("Location Services", "Location Enabled");
@@ -253,6 +253,7 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
                     Double lon = raceCoord.getDouble("longitude");
                     String user = raceCoord.getString("userName");
                     Marker marker = map.addMarker(new MarkerOptions().position(new LatLng(lat,lon)).title(user).icon(BitmapDescriptorFactory.fromResource(R.drawable.race_marker_green)));
+
                     userMarkers.add(marker);
                 }
                 catch (JSONException e){
@@ -394,7 +395,7 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             //Get users in race //TODO add api functionality
-            CharSequence[] userList = {"Brian Holt", "Brian Holt", "Megan Johnson"};
+            final CharSequence[] userList = {"Brian Holt", "Brian Holt", "Megan Johnson"};
             final List<String> userNumbers = new LinkedList<String>();
             userNumbers.add("2145461846");
             userNumbers.add("2145461846");
@@ -404,13 +405,32 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
             builder.setTitle("Participants in race")
                     .setItems(userList, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
-                            Intent callIntent = new Intent(Intent.ACTION_CALL);
-                            callIntent.setData(Uri.parse("tel:" + userNumbers.get(which)));
-                            startActivity(callIntent);
+                            CallNumberDialog callDialog = new CallNumberDialog();
+                            Bundle args = new Bundle();
+                            args.putString("name", userList[which].toString());
+                            args.putString("number", userNumbers.get(which));
+                            callDialog.setArguments(args);
+                            callDialog.show(getFragmentManager(), "callNumber");
                         }
                     });
             return builder.create();
 
+        }
+    }
+
+    public static class CallNumberDialog extends DialogFragment{
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setMessage("Would you like to call " + getArguments().getString("name") + " at " + getArguments().getString("number") + "?")
+                    .setPositiveButton("Call", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            Intent callIntent = new Intent(Intent.ACTION_CALL);
+                            callIntent.setData(Uri.parse("tel:" + getArguments().getString("number")));
+                            startActivity(callIntent);
+                        }
+                    });
+            return builder.create();
         }
     }
 }
