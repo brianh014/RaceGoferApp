@@ -4,15 +4,24 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.Toast;
+
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.*;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,12 +32,17 @@ import java.util.*;
 /**
  * Created by Brian on 10/30/2014.
  */
-public class RacerViewActivity extends Activity{
+public class RacerViewActivity extends Activity implements GooglePlayServicesClient.ConnectionCallbacks, GooglePlayServicesClient.OnConnectionFailedListener, LocationListener {
     private GoogleMap map;
     private GPSTracker gps;
     private String race_id;
     private Handler handler;
     private List userMarkers = new ArrayList();
+
+    //GPS variables
+    LocationClient locationClient;
+    LocationRequest locationRequest;
+    Boolean locationEnabled;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -39,6 +53,25 @@ public class RacerViewActivity extends Activity{
         String race = i.getStringExtra("race");
         ActionBar ab = getActionBar();
         ab.setTitle(race);
+
+        //gps setup
+        locationClient = new LocationClient(this, this, this);
+        locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(5000);
+        locationRequest.setFastestInterval(1000);
+        locationRequest.setSmallestDisplacement(4);
+
+        LocationManager manager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER) && !manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            locationEnabled = false;
+            Toast.makeText(this, "Enable location services for accurate data", Toast.LENGTH_SHORT).show();
+        }
+        else {
+            locationEnabled = true;
+            locationClient.connect();
+            Log.v("Location Services", "Location Enabled");
+        }
 
         //Get Race Id from intent
         race_id = i.getStringExtra("race_id");
@@ -62,7 +95,7 @@ public class RacerViewActivity extends Activity{
             gps.showSettingsAlert();
         }
 
-        //Start a task to repeat getting and sending racer coordinates
+        //Start a task to repeat getting racer coordinates
         handler = new Handler();
         handler.postDelayed(getSendCoords, 1000);
     }
@@ -134,11 +167,14 @@ public class RacerViewActivity extends Activity{
             HttpConc http = new HttpConc(getApplicationContext());
             URLParamEncoder encoder = new URLParamEncoder();
             String response;
+
+            /* Old Method, too many updates, inaccurate
             //Send current coords
             try
             {
+                GPSTracker getCoords = new GPSTracker(RacerViewActivity.this);
                 if (gps.canGetLocation()) {
-                    response = http.sendGet("http://racegofer.com/api/UpdatePosition?raceId=" + encoder.encode(race_id) + "&latitude=" + encoder.encode(Double.toString(gps.getLatitude())) + "&longitude=" + encoder.encode(Double.toString(gps.getLongitude())));
+                    response = http.sendGet("http://racegofer.com/api/UpdatePosition?raceId=" + encoder.encode(race_id) + "&latitude=" + encoder.encode(Double.toString(getCoords.getLatitude())) + "&longitude=" + encoder.encode(Double.toString(getCoords.getLongitude())));
                 }
             }
             catch(Exception e)
@@ -147,6 +183,7 @@ public class RacerViewActivity extends Activity{
                 Log.e("HTTP Send Coords Error", err);
                 return;
             }
+            */
 
             //Get other racers coords
             try
@@ -200,6 +237,35 @@ public class RacerViewActivity extends Activity{
     @Override
     public void onDestroy(){
         handler.removeCallbacks(getSendCoords);
+        locationClient.removeLocationUpdates(this);
         super.onDestroy();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        Log.v("Location Services", "Connected");
+        Location location = locationClient.getLastLocation();
+        locationClient.requestLocationUpdates(locationRequest, this);
+        if (location != null) {
+            Log.v("Location Services", "Location: " + location.getLatitude() + ", " + location.getLongitude());
+        }
+        else if (location == null && locationEnabled) {
+            locationClient.requestLocationUpdates(locationRequest, this);
+        }
+    }
+
+    @Override
+    public void onDisconnected() {
+        locationClient.removeLocationUpdates(this);
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        //TODO send coords
     }
 }
