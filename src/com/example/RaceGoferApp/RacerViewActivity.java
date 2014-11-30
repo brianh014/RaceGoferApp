@@ -4,11 +4,15 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 
@@ -36,13 +40,16 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
     private GoogleMap map;
     private GPSTracker gps;
     private String race_id;
-    private Handler handler;
+    private Handler getHandler;
+    private Handler sendHandler;
     private List userMarkers = new ArrayList();
 
     //GPS variables
-    LocationClient locationClient;
-    LocationRequest locationRequest;
-    Boolean locationEnabled;
+    private LocationClient locationClient;
+    private LocationRequest locationRequest;
+    private Boolean locationEnabled;
+    private  Location curLocation;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -96,8 +103,8 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
         }
 
         //Start a task to repeat getting racer coordinates
-        handler = new Handler();
-        handler.postDelayed(getSendCoords, 1000);
+        getHandler = new Handler();
+        getHandler.postDelayed(getCoords, 1000);
     }
 
 
@@ -161,7 +168,24 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
         map.addPolyline(checkpointLine);
     }
 
-    private Runnable getSendCoords = new Runnable() {
+    private Runnable sendCoords = new Runnable() {
+        @Override
+        public void run() {
+            HttpConc http = new HttpConc(getApplicationContext());
+            URLParamEncoder encoder = new URLParamEncoder();
+            try
+            {
+                http.sendGet("http://racegofer.com/api/UpdatePosition?raceId=" + encoder.encode(race_id) + "&latitude=" + encoder.encode(Double.toString(curLocation.getLatitude())) + "&longitude=" + encoder.encode(Double.toString(curLocation.getLongitude())));
+            }
+            catch(Exception e)
+            {
+                String err = (e.getMessage()==null)?"HTTP Send Coords Error":e.getMessage();
+                Log.e("HTTP Send Coords Error", err);
+            }
+        }
+    };
+
+    private Runnable getCoords = new Runnable() {
         @Override
         public void run() {
             HttpConc http = new HttpConc(getApplicationContext());
@@ -230,13 +254,14 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
                 }
             }
 
-            handler.postDelayed(this, 1000);
+            getHandler.postDelayed(this, 1000);
         }
     };
 
     @Override
     public void onDestroy(){
-        handler.removeCallbacks(getSendCoords);
+        getHandler.removeCallbacks(getCoords);
+        sendHandler.removeCallbacks(sendCoords);
         locationClient.removeLocationUpdates(this);
         super.onDestroy();
     }
@@ -266,6 +291,33 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
 
     @Override
     public void onLocationChanged(Location location) {
-        //TODO send coords
+        curLocation = location;
+        sendHandler = new Handler();
+        sendHandler.post(sendCoords);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.racerview_activity_actions, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle presses on the action bar items
+        switch (item.getItemId()) {
+            case R.id.action_users:
+
+                return true;
+            case R.id.action_info:
+
+                return true;
+            case R.id.action_leave:
+
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 }

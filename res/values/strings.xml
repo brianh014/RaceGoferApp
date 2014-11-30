@@ -4,6 +4,9 @@
     <string name="icon_new">New Icon</string>
     <string name="icon_overflow">Overflow Icon</string>
     <string name="logout">Logout</string>
+    <string name="user_lists">Participants</string>
+    <string name="race_info">Race Information</string>
+    <string name="leave_race">Leave Race</string>
     <string name="site">www.racegofer.com</string>
     <string name="api_create_race">/api/CreateRace?</string>
 </resources>
