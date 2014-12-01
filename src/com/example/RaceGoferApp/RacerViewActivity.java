@@ -115,6 +115,10 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
         getHandler.postDelayed(getCoords, 1000);
     }
 
+    public Activity getActivity(){
+        return this;
+    }
+
 
     private void setupInfo(){
         HttpConc http = new HttpConc(getApplicationContext());
@@ -332,6 +336,10 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
         switch (item.getItemId()) {
             case R.id.action_users:
                 DialogFragment raceUsers = new UserListDialog();
+                Bundle argsUser = new Bundle();
+                argsUser.putString("id", race_id);
+                argsUser.putString("type", userType);
+                raceUsers.setArguments(argsUser);
                 raceUsers.show(getFragmentManager(), "raceUsers");
                 return true;
             case R.id.action_info:
@@ -343,7 +351,11 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
                 raceInfo.show(getFragmentManager(), "raceInfo");
                 return true;
             case R.id.action_leave:
-                //TODO API leave
+                DialogFragment leave = new LeaveDialog();
+                Bundle argsLeave = new Bundle();
+                argsLeave.putString("id", race_id);
+                leave.setArguments(argsLeave);
+                leave.show(getFragmentManager(), "leaveRace");
                 return true;
             case R.id.action_delete:
                 //TODO API delete
@@ -394,20 +406,50 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
     public static class UserListDialog extends DialogFragment{
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            //Get users in race //TODO add api functionality
-            final CharSequence[] userList = {"Brian Holt", "Brian Holt", "Megan Johnson"};
+            //Get users in race
+            HttpConc http = new HttpConc(getActivity().getApplicationContext());
+            URLParamEncoder encoder = new URLParamEncoder();
+            JSONArray users;
+            try{
+                String response = http.sendGet("http://racegofer.com/api/GetNamesAndNumbersForRace?raceId=" + encoder.encode(getArguments().getString("id")) + "&type=" + encoder.encode(getArguments().getString("type")));
+                users = new JSONArray(response);
+            }
+            catch (Exception e){
+                String err = (e.getMessage()==null)?"UserList Error":e.getMessage();
+                Log.e("UserList Error", err);
+                Context context = getActivity().getApplicationContext();
+                CharSequence text = "Error in communicating with server.";
+                int duration = Toast.LENGTH_SHORT;
+                Toast toast = Toast.makeText(context, text, duration);
+                toast.show();
+                return null;
+            }
+
+            List<String> userList = new LinkedList<String>();
             final List<String> userNumbers = new LinkedList<String>();
-            userNumbers.add("2145461846");
-            userNumbers.add("2145461846");
-            userNumbers.add("9793247292");
+
+            for(int i = 0; i < users.length(); i++){
+                JSONObject user;
+                try {
+                    user = users.getJSONObject(i);
+                    userList.add(user.getString("firstName") + " " + user.getString("lastName"));
+                    userNumbers.add(user.getString("phoneNumber"));
+                }
+                catch (JSONException e){
+                    String err = (e.getMessage()==null)?"UserList Error":e.getMessage();
+                    Log.e("UserList Error", err);
+                }
+            }
+
+            final CharSequence[] charSequenceUserList = userList.toArray(new CharSequence[userList.size()]);
 
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setTitle("Participants in race")
-                    .setItems(userList, new DialogInterface.OnClickListener() {
+                    .setItems(charSequenceUserList, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             CallNumberDialog callDialog = new CallNumberDialog();
                             Bundle args = new Bundle();
-                            args.putString("name", userList[which].toString());
+                            args.putString("name", charSequenceUserList[which].toString());
                             args.putString("number", userNumbers.get(which));
                             callDialog.setArguments(args);
                             callDialog.show(getFragmentManager(), "callNumber");
@@ -428,6 +470,54 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
                             Intent callIntent = new Intent(Intent.ACTION_CALL);
                             callIntent.setData(Uri.parse("tel:" + getArguments().getString("number")));
                             startActivity(callIntent);
+                        }
+                    })
+                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+
+                        }
+                    });
+
+
+            return builder.create();
+        }
+    }
+
+    public static class LeaveDialog extends DialogFragment{
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setMessage("Are you sure you want to leave the race?")
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            HttpConc http = new HttpConc(getActivity().getApplicationContext());
+                            URLParamEncoder encoder = new URLParamEncoder();
+                            try {
+                                String response = http.sendGet("http://racegofer.com/api/LeaveRace?raceId=" + encoder.encode(getArguments().getString("id")));
+                                if(response.equals("0")){
+                                    Context context = getActivity().getApplicationContext();
+                                    CharSequence text = "Error in leaving race. Try again later.";
+                                    int duration = Toast.LENGTH_SHORT;
+                                    Toast toast = Toast.makeText(context, text, duration);
+                                    toast.show();
+                                    return;
+                                }
+                                getActivity().finish();
+
+                            } catch (Exception e) {
+                                String err = (e.getMessage() == null) ? "Leave Error" : e.getMessage();
+                                Log.e("Leave Error", err);
+                                Context context = getActivity().getApplicationContext();
+                                CharSequence text = "Error in communicating with server.";
+                                int duration = Toast.LENGTH_SHORT;
+                                Toast toast = Toast.makeText(context, text, duration);
+                                toast.show();
+                            }
+                        }
+                    })
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+
                         }
                     });
             return builder.create();
