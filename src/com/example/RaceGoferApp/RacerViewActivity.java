@@ -4,21 +4,16 @@ import android.app.*;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationManager;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 import android.util.Log;
-import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
-
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
@@ -34,7 +29,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 
@@ -203,25 +197,6 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
             HttpConc http = new HttpConc(getApplicationContext());
             URLParamEncoder encoder = new URLParamEncoder();
             String response;
-
-            /* Old Method, too many updates, inaccurate
-            //Send current coords
-            try
-            {
-                GPSTracker getCoords = new GPSTracker(RacerViewActivity.this);
-                if (gps.canGetLocation()) {
-                    response = http.sendGet("http://racegofer.com/api/UpdatePosition?raceId=" + encoder.encode(race_id) + "&latitude=" + encoder.encode(Double.toString(getCoords.getLatitude())) + "&longitude=" + encoder.encode(Double.toString(getCoords.getLongitude())));
-                }
-            }
-            catch(Exception e)
-            {
-                String err = (e.getMessage()==null)?"HTTP Send Coords Error":e.getMessage();
-                Log.e("HTTP Send Coords Error", err);
-                return;
-            }
-            */
-
-            //Get other racers coords
             try
             {
                 response = http.sendGet("http://racegofer.com/api/GetRacerCoordinates?raceId=" + encoder.encode(race_id));
@@ -298,9 +273,7 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
     }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
-    }
+    public void onConnectionFailed(ConnectionResult connectionResult) {}
 
     @Override
     public void onLocationChanged(Location location) {
@@ -460,7 +433,6 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
                         }
                     });
             return builder.create();
-
         }
     }
 
@@ -481,8 +453,6 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
 
                         }
                     });
-
-
             return builder.create();
         }
     }
