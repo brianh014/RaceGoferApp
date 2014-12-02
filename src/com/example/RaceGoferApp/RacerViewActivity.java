@@ -358,7 +358,11 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
                 leave.show(getFragmentManager(), "leaveRace");
                 return true;
             case R.id.action_delete:
-                //TODO API delete
+                DialogFragment delete = new DeleteDialog();
+                Bundle argsDelete = new Bundle();
+                argsDelete.putString("id", race_id);
+                delete.setArguments(argsDelete);
+                delete.show(getFragmentManager(), "leaveRace");
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -507,6 +511,47 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
                             } catch (Exception e) {
                                 String err = (e.getMessage() == null) ? "Leave Error" : e.getMessage();
                                 Log.e("Leave Error", err);
+                                Context context = getActivity().getApplicationContext();
+                                CharSequence text = "Error in communicating with server.";
+                                int duration = Toast.LENGTH_SHORT;
+                                Toast toast = Toast.makeText(context, text, duration);
+                                toast.show();
+                            }
+                        }
+                    })
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+
+                        }
+                    });
+            return builder.create();
+        }
+    }
+
+    public static class DeleteDialog extends DialogFragment{
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setMessage("Are you sure you want to delete the race?")
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            HttpConc http = new HttpConc(getActivity().getApplicationContext());
+                            URLParamEncoder encoder = new URLParamEncoder();
+                            try {
+                                String response = http.sendGet("http://racegofer.com/api/DeleteRace?raceId=" + encoder.encode(getArguments().getString("id")));
+                                if(response.equals("0")){
+                                    Context context = getActivity().getApplicationContext();
+                                    CharSequence text = "Error in leaving race. Try again later.";
+                                    int duration = Toast.LENGTH_SHORT;
+                                    Toast toast = Toast.makeText(context, text, duration);
+                                    toast.show();
+                                    return;
+                                }
+                                getActivity().finish();
+
+                            } catch (Exception e) {
+                                String err = (e.getMessage() == null) ? "Delete Error" : e.getMessage();
+                                Log.e("Delete Error", err);
                                 Context context = getActivity().getApplicationContext();
                                 CharSequence text = "Error in communicating with server.";
                                 int duration = Toast.LENGTH_SHORT;
