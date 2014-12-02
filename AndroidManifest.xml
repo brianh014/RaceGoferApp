@@ -24,7 +24,8 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".RacerViewActivity"/>
+        <activity android:name=".RacerViewActivity"
+                  android:parentActivityName=".RaceListsActivity"/>
         <activity android:name=".RaceListsActivity"/>
         <activity android:name=".CreateRace"/>
         <activity android:name=".CheckpointChooser"/>

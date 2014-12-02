@@ -9,6 +9,7 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -38,6 +39,7 @@ import java.util.*;
 public class RacerViewActivity extends Activity implements GooglePlayServicesClient.ConnectionCallbacks, GooglePlayServicesClient.OnConnectionFailedListener, LocationListener {
     private GoogleMap map;
     private GPSTracker gps;
+    private String race;
     private String race_id;
     private String userType;
     private Handler getHandler;
@@ -56,7 +58,7 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
         super.onCreate(savedInstanceState);
 
         Intent i = getIntent();
-        String race = i.getStringExtra("race");
+        race = i.getStringExtra("race");
         ActionBar ab = getActionBar();
         ab.setTitle(race);
 
@@ -112,7 +114,6 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
     public Activity getActivity(){
         return this;
     }
-
 
     private void setupInfo(){
         HttpConc http = new HttpConc(getApplicationContext());
