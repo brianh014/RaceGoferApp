@@ -111,15 +111,15 @@ public class JoinRaceActivity extends Activity {
             Intent i = new Intent(getApplication(), RacerViewActivity.class);
             String response = "0";
             if(participant.isChecked()) {
-                response = http.sendGet("http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(raceId) + "&password=" + encoder.encode(passwordField.getText().toString()) + "&userType=Participant");
+                response = http.sendGet("http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(raceId) + "&password=" + encoder.encode(passwordField.getText().toString()) + "&userType=Participant&hidden=" + hideBox.isChecked());
                 i.putExtra("user_type", "Participant");
             }
             else if(spectator.isChecked()){
-                response = http.sendGet("http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(raceId) + "&password=" + encoder.encode(passwordField.getText().toString()) + "&userType=Spectator");
+                response = http.sendGet("http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(raceId) + "&password=" + encoder.encode(passwordField.getText().toString()) + "&userType=Spectator" + hideBox.isChecked());
                 i.putExtra("user_type", "Spectator");
             }
             else if(manager.isChecked()){
-                response = http.sendGet("http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(raceId) + "&password=" + encoder.encode(passwordField.getText().toString()) + "&userType=Manager");
+                response = http.sendGet("http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(raceId) + "&password=" + encoder.encode(passwordField.getText().toString()) + "&userType=Manager" + hideBox.isChecked());
                 i.putExtra("user_type", "Manager");
             }
 

@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:map="http://schemas.android.com/apk/res-auto"
-          android:id="@+id/map"
-          android:layout_width="match_parent"
-          android:layout_height="match_parent"
-          android:name="com.google.android.gms.maps.MapFragment"
-          map:mapType="normal"
-          map:uiCompass="true"
-          map:uiRotateGestures="true"
-          map:cameraTilt="0"
-          map:cameraZoom="13"
-          map:uiTiltGestures="true"
-          map:uiZoomGestures="true"
-          map:uiZoomControls="true"/>
+<RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:map="http://schemas.android.com/apk/res-auto"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/relativeLayout">
+    <fragment
+            android:id="@+id/map"
+            android:layout_width="fill_parent"
+            android:layout_height="match_parent"
+            android:name="com.google.android.gms.maps.MapFragment"
+            android:layout_above="@+id/callButton"/>
+    <Button
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:text="Emergency - Call a Manager"
+            android:id="@+id/callButton"
+            android:layout_alignStart="@+id/map" android:onClick="emergencyClick"/>
+</RelativeLayout>

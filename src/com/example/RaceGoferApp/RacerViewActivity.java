@@ -4,6 +4,8 @@ import android.app.*;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -14,6 +16,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -67,6 +71,7 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
         userType = i.getStringExtra("user_type");
 
         setContentView(R.layout.racerview);
+        findViewById(R.id.callButton).getBackground().setColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY);
 
         //gps setup
         locationClient = new LocationClient(this, this, this);
@@ -90,6 +95,10 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
         //Map Setup
         map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
         map.setMyLocationEnabled(true);
+        map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        map.getUiSettings().setCompassEnabled(true);
+        map.getUiSettings().setAllGesturesEnabled(true);
+        map.getUiSettings().setZoomControlsEnabled(true);
 
         //Draw race checkpoints
         setupInfo();
@@ -169,7 +178,12 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
                 Log.e("JSON Error", err);
                 return;
             }
-            map.addMarker(new MarkerOptions().position(new LatLng(lat,lon)).icon(BitmapDescriptorFactory.fromResource(R.drawable.checkpoint)));
+            if(i == checkpoints.length() - 1) {
+                map.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).icon(BitmapDescriptorFactory.fromResource(R.drawable.checkpoint_end)));
+            }
+            else{
+                map.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).icon(BitmapDescriptorFactory.fromResource(R.drawable.checkpoint)));
+            }
             checkpointLine.add(new LatLng(lat, lon));
         }
         map.addPolyline(checkpointLine);
@@ -231,9 +245,7 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
                     raceCoord = racerCoords.getJSONObject(i);
                     Double lat = raceCoord.getDouble("latitude");
                     Double lon = raceCoord.getDouble("longitude");
-                    String user = raceCoord.getString("userName");
-                    Marker marker = map.addMarker(new MarkerOptions().position(new LatLng(lat,lon)).title(user).icon(BitmapDescriptorFactory.fromResource(R.drawable.race_marker_green)));
-
+                    Marker marker = map.addMarker(new MarkerOptions().position(new LatLng(lat,lon)).title(raceCoord.getString("firstName") + " " + raceCoord.getString("lastName")).icon(BitmapDescriptorFactory.fromResource(R.drawable.race_marker_green)));
                     userMarkers.add(marker);
                 }
                 catch (JSONException e){
@@ -387,10 +399,13 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
             //Get users in race
             HttpConc http = new HttpConc(getActivity().getApplicationContext());
             URLParamEncoder encoder = new URLParamEncoder();
-            JSONArray users;
+            JSONArray managersArray;
+            JSONArray participantArray;
             try{
-                String response = http.sendGet("http://racegofer.com/api/GetNamesAndNumbersForRace?raceId=" + encoder.encode(getArguments().getString("id")) + "&type=" + encoder.encode(getArguments().getString("type")));
-                users = new JSONArray(response);
+                String managers = http.sendGet("http://racegofer.com/api/GetNamesAndNumbersForRace?raceId=" + encoder.encode(getArguments().getString("id")) + "&type=Manager");
+                String participants = http.sendGet("http://racegofer.com/api/GetNamesAndNumbersForRace?raceId=" + encoder.encode(getArguments().getString("id")) + "&type=Participant");
+                managersArray = new JSONArray(managers);
+                participantArray = new JSONArray(participants);
             }
             catch (Exception e){
                 String err = (e.getMessage()==null)?"UserList Error":e.getMessage();
@@ -403,14 +418,14 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
                 return null;
             }
 
-            List<String> userList = new LinkedList<String>();
+            List<String> managerList = new LinkedList<String>();
             final List<String> userNumbers = new LinkedList<String>();
 
-            for(int i = 0; i < users.length(); i++){
+            for(int i = 0; i < managersArray.length(); i++){
                 JSONObject user;
                 try {
-                    user = users.getJSONObject(i);
-                    userList.add(user.getString("firstName") + " " + user.getString("lastName"));
+                    user = managersArray.getJSONObject(i);
+                    managerList.add(user.getString("firstName") + " " + user.getString("lastName") + " - Race Manager");
                     userNumbers.add(user.getString("phoneNumber"));
                 }
                 catch (JSONException e){
@@ -419,7 +434,25 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
                 }
             }
 
-            final CharSequence[] charSequenceUserList = userList.toArray(new CharSequence[userList.size()]);
+            List<String> participantList = new LinkedList<String>();
+
+            for(int i = 0; i < participantArray.length(); i++){
+                JSONObject user;
+                try {
+                    user = participantArray.getJSONObject(i);
+                    participantList.add(user.getString("firstName") + " " + user.getString("lastName") + " - Race Participant");
+                    userNumbers.add(user.getString("phoneNumber"));
+                }
+                catch (JSONException e){
+                    String err = (e.getMessage()==null)?"UserList Error":e.getMessage();
+                    Log.e("UserList Error", err);
+                }
+            }
+
+            List<String> combo = new LinkedList<String>();
+            combo.addAll(managerList);
+            combo.addAll(participantList);
+            final CharSequence[] charSequenceUserList = combo.toArray(new CharSequence[combo.size()]);
 
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setTitle("Participants in race")
@@ -538,5 +571,48 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
                     });
             return builder.create();
         }
+    }
+
+    public void emergencyClick(View view){
+        HttpConc http = new HttpConc(getActivity().getApplicationContext());
+        URLParamEncoder encoder = new URLParamEncoder();
+        JSONArray managersArray;
+        try{
+            String managers = http.sendGet("http://racegofer.com/api/GetNamesAndNumbersForRace?raceId=" + race_id + "&type=Manager");
+            managersArray = new JSONArray(managers);
+        }
+        catch (Exception e){
+            String err = (e.getMessage()==null)?"UserList Error":e.getMessage();
+            Log.e("UserList Error", err);
+            Context context = getActivity().getApplicationContext();
+            CharSequence text = "Error in communicating with server.";
+            int duration = Toast.LENGTH_SHORT;
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
+            return;
+        }
+
+        List<String> managerList = new LinkedList<String>();
+        final List<String> userNumbers = new LinkedList<String>();
+
+        for(int i = 0; i < managersArray.length(); i++){
+            JSONObject user;
+            try {
+                user = managersArray.getJSONObject(i);
+                managerList.add(user.getString("firstName") + " " + user.getString("lastName") + " - Race Manager");
+                userNumbers.add(user.getString("phoneNumber"));
+            }
+            catch (JSONException e){
+                String err = (e.getMessage()==null)?"UserList Error":e.getMessage();
+                Log.e("UserList Error", err);
+            }
+        }
+
+        Bundle args = new Bundle();
+        args.putString("name", managerList.get(0));
+        args.putString("number", userNumbers.get(0));
+        CallNumberDialog call = new CallNumberDialog();
+        call.setArguments(args);
+        call.show(getFragmentManager(), "call");
     }
 }
