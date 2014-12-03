@@ -76,22 +76,27 @@ public class JoinRaceActivity extends Activity {
         if(participant.isChecked() && hasPass){
             passwordText.setVisibility(View.VISIBLE);
             passwordField.setVisibility(View.VISIBLE);
+            hideBox.setVisibility(View.VISIBLE);
         }
         else if(participant.isChecked() && !hasPass){
             passwordText.setVisibility(View.GONE);
             passwordField.setVisibility(View.GONE);
+            hideBox.setVisibility(View.VISIBLE);
         }
         if(spectator.isChecked() && hasPass){
             passwordText.setVisibility(View.VISIBLE);
             passwordField.setVisibility(View.VISIBLE);
+            hideBox.setVisibility(View.GONE);
         }
         else if(spectator.isChecked() && !hasPass){
             passwordText.setVisibility(View.GONE);
             passwordField.setVisibility(View.GONE);
+            hideBox.setVisibility(View.GONE);
         }
         else if(manager.isChecked()){
             passwordText.setVisibility(View.VISIBLE);
             passwordField.setVisibility(View.VISIBLE);
+            hideBox.setVisibility(View.GONE);
         }
     }
 
@@ -115,11 +120,11 @@ public class JoinRaceActivity extends Activity {
                 i.putExtra("user_type", "Participant");
             }
             else if(spectator.isChecked()){
-                response = http.sendGet("http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(raceId) + "&password=" + encoder.encode(passwordField.getText().toString()) + "&userType=Spectator" + hideBox.isChecked());
+                response = http.sendGet("http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(raceId) + "&password=" + encoder.encode(passwordField.getText().toString()) + "&userType=Spectator&hidden=" + hideBox.isChecked());
                 i.putExtra("user_type", "Spectator");
             }
             else if(manager.isChecked()){
-                response = http.sendGet("http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(raceId) + "&password=" + encoder.encode(passwordField.getText().toString()) + "&userType=Manager" + hideBox.isChecked());
+                response = http.sendGet("http://racegofer.com/api/JoinRace?raceId=" + encoder.encode(raceId) + "&password=" + encoder.encode(passwordField.getText().toString()) + "&userType=Manager&hidden=" + hideBox.isChecked());
                 i.putExtra("user_type", "Manager");
             }
 

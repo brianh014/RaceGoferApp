@@ -261,8 +261,14 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
 
     @Override
     public void onDestroy(){
-        getHandler.removeCallbacks(getCoords);
-        sendHandler.removeCallbacks(sendCoords);
+        try {
+            getHandler.removeCallbacks(getCoords);
+            sendHandler.removeCallbacks(sendCoords);
+        }
+        catch (Exception e){
+            String err = (e.getMessage()==null)?"Runnable Error":e.getMessage();
+            Log.e("Runnable Error", err);
+        }
         locationClient.removeLocationUpdates(this);
         super.onDestroy();
     }
