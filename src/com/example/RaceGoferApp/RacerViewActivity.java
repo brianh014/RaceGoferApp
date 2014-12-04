@@ -49,6 +49,7 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
     private Handler getHandler;
     private Handler sendHandler;
     private List userMarkers = new ArrayList();
+    private Runnable getCoordsRunnable;
 
     //GPS variables
     private LocationClient locationClient;
@@ -101,7 +102,7 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
         map.getUiSettings().setZoomControlsEnabled(true);
 
         //Draw race checkpoints
-        setupInfo();
+        Queue<Coordinate> checkpointsList = setupInfo();
 
         //Create gps tracker and move to users location
         gps = new GPSTracker(RacerViewActivity.this);
@@ -117,14 +118,15 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
 
         //Start a task to repeat getting racer coordinates
         getHandler = new Handler();
-        getHandler.postDelayed(getCoords, 1000);
+        getCoordsRunnable = new getCoords(checkpointsList);
+        getHandler.postDelayed(getCoordsRunnable, 1000);
     }
 
     public Activity getActivity(){
         return this;
     }
 
-    private void setupInfo(){
+    private Queue<Coordinate> setupInfo(){
         HttpConc http = new HttpConc(getApplicationContext());
         URLParamEncoder encoder = new URLParamEncoder();
         String response;
@@ -141,7 +143,7 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
             int duration = Toast.LENGTH_SHORT;
             Toast toast = Toast.makeText(context, text, duration);
             toast.show();
-            return;
+            return null;
         }
 
         JSONObject raceInfo;
@@ -151,7 +153,7 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
         catch (JSONException e){
             String err = (e.getMessage()==null)?"JSON Error":e.getMessage();
             Log.e("JSON Error", err);
-            return;
+            return null;
         }
 
         JSONArray checkpoints;
@@ -160,23 +162,28 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
         } catch (JSONException e) {
             String err = (e.getMessage()==null)?"JSON Array Error":e.getMessage();
             Log.e("JSON Array Error", err);
-            return;
+            return null;
         }
 
         //Parse and draw checkpoints and line
         PolylineOptions checkpointLine = new PolylineOptions();
+        Queue<Coordinate> checkpointsList = new LinkedList<Coordinate>();
         for (int i = 0; i < checkpoints.length(); i++) {
             JSONObject checkpoint;
-            Double lon = 0.0;
-            Double lat = 0.0;
+            Double lon;
+            Double lat;
             try {
                 checkpoint = checkpoints.getJSONObject(i);
                 lon = checkpoint.getDouble("longitude");
                 lat = checkpoint.getDouble("latitude");
+
+                //Setup structure for use in CoordinateFunction
+                checkpointsList.add(new Coordinate(lat, lon));
+
             } catch (JSONException e) {
                 String err = (e.getMessage()==null)?"JSON Error":e.getMessage();
                 Log.e("JSON Error", err);
-                return;
+                return null;
             }
             if(i == checkpoints.length() - 1) {
                 map.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).icon(BitmapDescriptorFactory.fromResource(R.drawable.checkpoint_end)));
@@ -187,26 +194,34 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
             checkpointLine.add(new LatLng(lat, lon));
         }
         map.addPolyline(checkpointLine);
+        return checkpointsList;
     }
 
     private Runnable sendCoords = new Runnable() {
         @Override
         public void run() {
-            HttpConc http = new HttpConc(getApplicationContext());
-            URLParamEncoder encoder = new URLParamEncoder();
-            try
-            {
-                http.sendGet("http://racegofer.com/api/UpdatePosition?raceId=" + encoder.encode(race_id) + "&latitude=" + encoder.encode(Double.toString(curLocation.getLatitude())) + "&longitude=" + encoder.encode(Double.toString(curLocation.getLongitude())));
-            }
-            catch(Exception e)
-            {
-                String err = (e.getMessage()==null)?"HTTP Send Coords Error":e.getMessage();
-                Log.e("HTTP Send Coords Error", err);
-            }
+        HttpConc http = new HttpConc(getApplicationContext());
+        URLParamEncoder encoder = new URLParamEncoder();
+        try
+        {
+            http.sendGet("http://racegofer.com/api/UpdatePosition?raceId=" + encoder.encode(race_id) + "&latitude=" + encoder.encode(Double.toString(curLocation.getLatitude())) + "&longitude=" + encoder.encode(Double.toString(curLocation.getLongitude())));
+        }
+        catch(Exception e)
+        {
+            String err = (e.getMessage()==null)?"HTTP Send Coords Error":e.getMessage();
+            Log.e("HTTP Send Coords Error", err);
+        }
         }
     };
 
-    private Runnable getCoords = new Runnable() {
+    public class getCoords implements Runnable {
+
+        private final Queue<Coordinate> checkList = new LinkedList<Coordinate>();
+
+        public getCoords(Queue<Coordinate> checkListArg){
+            checkList.addAll(checkListArg);
+        }
+
         @Override
         public void run() {
             HttpConc http = new HttpConc(getApplicationContext());
@@ -239,13 +254,27 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
                 marker.remove();
             }
 
+
             for(int i = 0; i < racerCoords.length(); i++){
                 JSONObject raceCoord;
                 try{
                     raceCoord = racerCoords.getJSONObject(i);
                     Double lat = raceCoord.getDouble("latitude");
                     Double lon = raceCoord.getDouble("longitude");
-                    Marker marker = map.addMarker(new MarkerOptions().position(new LatLng(lat,lon)).title(raceCoord.getString("firstName") + " " + raceCoord.getString("lastName")).icon(BitmapDescriptorFactory.fromResource(R.drawable.race_marker_green)));
+
+                    //Determine if user too far away from checkpoints
+                    CoordinateFunction userCheck = new CoordinateFunction();
+                    Boolean inRange = userCheck.RacerInRange(new Coordinate(lat, lon), checkList);
+                    Log.v("inRange", inRange.toString());
+                    Log.v("checkList", checkList.toString());
+
+                    Marker marker;
+                    if(inRange) {
+                        marker = map.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title(raceCoord.getString("firstName") + " " + raceCoord.getString("lastName")).icon(BitmapDescriptorFactory.fromResource(R.drawable.race_marker_green)));
+                    }
+                    else{
+                        marker = map.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title(raceCoord.getString("firstName") + " " + raceCoord.getString("lastName") + " - Racer is off track!").icon(BitmapDescriptorFactory.fromResource(R.drawable.race_marker_red)));
+                    }
                     userMarkers.add(marker);
                 }
                 catch (JSONException e){
@@ -255,14 +284,15 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
                 }
             }
 
+
             getHandler.postDelayed(this, 1000);
         }
-    };
+    }
 
     @Override
     public void onDestroy(){
         try {
-            getHandler.removeCallbacks(getCoords);
+            getHandler.removeCallbacks(getCoordsRunnable);
             sendHandler.removeCallbacks(sendCoords);
         }
         catch (Exception e){
