@@ -118,7 +118,7 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
 
         //Start a task to repeat getting racer coordinates
         getHandler = new Handler();
-        getCoordsRunnable = new getCoords(checkpointsList);
+        getCoordsRunnable = new getCoords(checkpointsList, map);
         getHandler.postDelayed(getCoordsRunnable, 1000);
     }
 
@@ -200,6 +200,7 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
     private Runnable sendCoords = new Runnable() {
         @Override
         public void run() {
+        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
         HttpConc http = new HttpConc(getApplicationContext());
         URLParamEncoder encoder = new URLParamEncoder();
         try
@@ -217,13 +218,16 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
     public class getCoords implements Runnable {
 
         private final Queue<Coordinate> checkList = new LinkedList<Coordinate>();
+        private GoogleMap threadMap;
 
-        public getCoords(Queue<Coordinate> checkListArg){
+        public getCoords(Queue<Coordinate> checkListArg, GoogleMap m){
+            threadMap = m;
             checkList.addAll(checkListArg);
         }
 
         @Override
         public void run() {
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
             HttpConc http = new HttpConc(getApplicationContext());
             URLParamEncoder encoder = new URLParamEncoder();
             String response;
@@ -251,8 +255,9 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
             //clear marker list
             for(int i = 0; i < userMarkers.size(); i++){
                 Marker marker = (Marker)userMarkers.get(i);
-                marker.remove();
+                getActivity().runOnUiThread(new removeMarker(marker));
             }
+            userMarkers.clear();
 
 
             for(int i = 0; i < racerCoords.length(); i++){
@@ -265,17 +270,8 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
                     //Determine if user too far away from checkpoints
                     CoordinateFunction userCheck = new CoordinateFunction();
                     Boolean inRange = userCheck.RacerInRange(new Coordinate(lat, lon), checkList);
-                    Log.v("inRange", inRange.toString());
-                    Log.v("checkList", checkList.toString());
 
-                    Marker marker;
-                    if(inRange) {
-                        marker = map.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title(raceCoord.getString("firstName") + " " + raceCoord.getString("lastName")).icon(BitmapDescriptorFactory.fromResource(R.drawable.race_marker_green)));
-                    }
-                    else{
-                        marker = map.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title(raceCoord.getString("firstName") + " " + raceCoord.getString("lastName") + " - Racer is off track!").icon(BitmapDescriptorFactory.fromResource(R.drawable.race_marker_red)));
-                    }
-                    userMarkers.add(marker);
+                    getActivity().runOnUiThread(new updateMap(inRange, lat, lon, raceCoord, threadMap));
                 }
                 catch (JSONException e){
                     String err = (e.getMessage()==null)?"JSON Error":e.getMessage();
@@ -289,17 +285,81 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
         }
     }
 
+    private class removeMarker implements Runnable{
+
+        Marker marker;
+
+        public removeMarker(Marker m){
+            marker = m;
+        }
+
+        @Override
+        public void run() {
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+            marker.remove();
+        }
+    }
+
+    private class updateMap implements Runnable{
+
+        private Boolean inRange;
+        private Double lat;
+        private Double lon;
+        private JSONObject raceCoord;
+        private GoogleMap threadMap;
+
+        public updateMap(Boolean r, Double latitude, Double longitude, JSONObject json, GoogleMap m){
+            inRange = r;
+            lat = latitude;
+            lon = longitude;
+            raceCoord = json;
+            threadMap = m;
+        }
+
+        @Override
+        public void run() {
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+            try {
+                Marker marker;
+                Long userTime = Long.parseLong(raceCoord.getString("timeStamp"),10) + -18000;
+                Long systemTime = System.currentTimeMillis();
+                Long diff = systemTime - userTime;
+
+                Log.v("Time diff", diff.toString());
+
+                if(raceCoord.getString("type").equals("Manager")){
+                    marker = threadMap.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title(raceCoord.getString("firstName") + " " + raceCoord.getString("lastName") + " - Manager").icon(BitmapDescriptorFactory.fromResource(R.drawable.manager_icon)));
+                }
+                else if(diff > 600000){ // 10 minutes
+                    marker = threadMap.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title(raceCoord.getString("firstName") + " " + raceCoord.getString("lastName") + " - Racer has not moved in over 10 minutes").icon(BitmapDescriptorFactory.fromResource(R.drawable.race_marker_yellow)));
+                }
+                else if (inRange) {
+                    marker = threadMap.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title(raceCoord.getString("firstName") + " " + raceCoord.getString("lastName")).icon(BitmapDescriptorFactory.fromResource(R.drawable.race_marker_green)));
+                }
+                else {
+                    marker = threadMap.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title(raceCoord.getString("firstName") + " " + raceCoord.getString("lastName") + " - Racer is off track!").icon(BitmapDescriptorFactory.fromResource(R.drawable.race_marker_red)));
+                }
+                userMarkers.add(marker);
+            }
+            catch (Exception e){
+                String err = (e.getMessage()==null)?"JSON Error":e.getMessage();
+                Log.e("JSON Error", err);
+                return;
+            }
+        }
+    }
+
     @Override
     public void onDestroy(){
         try {
             getHandler.removeCallbacks(getCoordsRunnable);
             sendHandler.removeCallbacks(sendCoords);
+            locationClient.removeLocationUpdates(this);
         }
         catch (Exception e){
             String err = (e.getMessage()==null)?"Runnable Error":e.getMessage();
             Log.e("Runnable Error", err);
         }
-        locationClient.removeLocationUpdates(this);
         super.onDestroy();
     }
 
@@ -339,8 +399,10 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
         }
 
         MenuItem deleteRace = menu.findItem(R.id.action_delete);
+        MenuItem startRace = menu.findItem(R.id.action_start);
         if(userType.equals("Spectator") || userType.equals("Participant")){
             deleteRace.setVisible(false);
+            startRace.setVisible(false);
         }
         return true;
     }
@@ -385,6 +447,38 @@ public class RacerViewActivity extends Activity implements GooglePlayServicesCli
                 argsDelete.putString("id", race_id);
                 delete.setArguments(argsDelete);
                 delete.show(getFragmentManager(), "leaveRace");
+                return true;
+            case R.id.action_start:
+                HttpConc http = new HttpConc(getActivity().getApplicationContext());
+                URLParamEncoder encoder = new URLParamEncoder();
+                String response;
+                try{
+                    response = http.sendGet("http://racegofer.com/api/GetRaceInfo?raceId=" + race_id);
+                }
+                catch (Exception e){
+                    String err = (e.getMessage()==null)?"Start Race Error":e.getMessage();
+                    Log.e("Start Race Error", err);
+                    Context context = getActivity().getApplicationContext();
+                    CharSequence text = "There was an error communicating with the servers.";
+                    int duration = Toast.LENGTH_LONG;
+                    Toast toast = Toast.makeText(context, text, duration);
+                    toast.show();
+                    return true;
+                }
+                if(response.equals("1")) {
+                    Context context = getActivity().getApplicationContext();
+                    CharSequence text = "Your race has been started!.";
+                    int duration = Toast.LENGTH_SHORT;
+                    Toast toast = Toast.makeText(context, text, duration);
+                    toast.show();
+                }
+                else{
+                    Context context = getActivity().getApplicationContext();
+                    CharSequence text = "Your race has already been started!.";
+                    int duration = Toast.LENGTH_SHORT;
+                    Toast toast = Toast.makeText(context, text, duration);
+                    toast.show();
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

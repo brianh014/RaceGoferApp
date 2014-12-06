@@ -9,6 +9,9 @@
           android:icon="@drawable/ic_action_about"
           android:title="@string/race_info"
           android:showAsAction="ifRoom" />
+    <item android:id="@+id/action_start"
+          android:title="@string/start_race"
+          android:showAsAction="never" />
     <item android:id="@+id/action_leave"
           android:title="@string/leave_race"
           android:showAsAction="never" />

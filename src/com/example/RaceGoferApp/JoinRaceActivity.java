@@ -70,6 +70,32 @@ public class JoinRaceActivity extends Activity {
             passwordText.setVisibility(View.GONE);
             passwordField.setVisibility(View.GONE);
         }
+
+        if(participant.isChecked() && hasPass){
+            passwordText.setVisibility(View.VISIBLE);
+            passwordField.setVisibility(View.VISIBLE);
+            hideBox.setVisibility(View.VISIBLE);
+        }
+        else if(participant.isChecked() && !hasPass){
+            passwordText.setVisibility(View.GONE);
+            passwordField.setVisibility(View.GONE);
+            hideBox.setVisibility(View.VISIBLE);
+        }
+        if(spectator.isChecked() && hasPass){
+            passwordText.setVisibility(View.VISIBLE);
+            passwordField.setVisibility(View.VISIBLE);
+            hideBox.setVisibility(View.GONE);
+        }
+        else if(spectator.isChecked() && !hasPass){
+            passwordText.setVisibility(View.GONE);
+            passwordField.setVisibility(View.GONE);
+            hideBox.setVisibility(View.GONE);
+        }
+        else if(manager.isChecked()){
+            passwordText.setVisibility(View.VISIBLE);
+            passwordField.setVisibility(View.VISIBLE);
+            hideBox.setVisibility(View.GONE);
+        }
     }
 
     public void radioGroupClick(View view){
